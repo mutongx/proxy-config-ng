@@ -1,0 +1,14 @@
+{
+  "type": "hysteria",
+  "server": { "$ref": "args#/server" },
+  "server_port": { "$ref": "args#/server_port" },
+  "up": { "$ref": "args#/client_up" },
+  "down": { "$ref": "args#/client_down" },
+  "auth_str": { "$ref": "kv://SECRETS/hysteria_auth_str" },
+  "tls": {
+    "enabled": true,
+    "server_name": "127.0.0.1",
+    "alpn": [ "h3" ],
+    "certificate": { "$ref": "kv://SECRETS/server_certificate" }
+  }
+}
