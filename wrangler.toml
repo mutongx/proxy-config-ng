@@ -4,6 +4,7 @@ compatibility_date = "2023-04-09"
 
 [vars]
 GITHUB_REPO = "mutongx/proxy-config-ng"
+GITHUB_REF = "main"
 
 [[d1_databases]]
 binding = "DB"
