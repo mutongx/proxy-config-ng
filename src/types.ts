@@ -4,11 +4,22 @@ export type User = {
   config: object | null,
 };
 
+export type Host = {
+  name: string,
+  addr4: string,
+  addr6: string,
+}
+
 export type Access = {
   user: string,
   class: string,
   tag: string
 };
+
+export type Secret = {
+  name: string,
+  value: string,
+}
 
 export type Proxy = {
   host: string,

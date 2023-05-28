@@ -1,4 +1,5 @@
-import { Access, Proxy, User } from "./types";
+import { Access, Host, Proxy, Secret, User } from "./types";
+import * as pointer from "json-pointer";
 
 export interface Env {
   SECRETS: KVNamespace;
@@ -51,6 +52,58 @@ export default {
     return result;
   },
 
+  async getHostAddr(env: Env, name: string) {
+    const stmt = env.DB.prepare("SELECT * FROM host WHERE name = ?1").bind(name);
+    const host = await stmt.first() as Host | null;
+    if (!host) {
+      return null;
+    }
+    return host.addr4;
+  },
+
+  async getSecret(env: Env, name: string) {
+    const stmt = env.DB.prepare("SELECT * FROM secret WHERE name = ?1").bind(name);
+    const secret = await stmt.first() as Secret | null;
+    if (!secret) {
+      return null;
+    }
+    return secret.value;
+  },
+
+  async fillConfig(env: Env, args: object, obj: any) {
+    if (obj === null) {
+      return;
+    }
+    if (typeof obj !== "object") {
+      return;
+    }
+    if (Array.isArray(obj)) {
+      return;
+    }
+    const keys = Object.keys(obj);
+    for (const key of keys) {
+      const value = obj[key];
+      if (value.$ref) {
+        const url = new URL(value.$ref);
+        if (url.protocol == "args:") {
+          var newValue;
+          try {
+            newValue = pointer.get(args, url.pathname);
+          } catch (e) {
+            newValue = url.searchParams.get("default");
+          }
+          obj[key] = newValue;
+        } else if (url.protocol == "secrets:") {
+          obj[key] = await this.getSecret(env, url.pathname);
+        } else {
+          throw new Error(`unsupported ref: ${value.$ref}`)
+        }
+      } else {
+        await this.fillConfig(env, args, value);
+      }
+    }
+  },
+
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const paths = url.pathname.split("/");
@@ -68,6 +121,15 @@ export default {
     const proxies = await this.getProxies(env, accesses);
     const proxyTypes = [... new Set(proxies.map((val) => val.type))]
     const proxyConfigs = await this.getProxiesConfig(env, proxyTypes);
+
+    for (const proxy of proxies) {
+      const config = structuredClone(proxyConfigs.get(proxy.type));
+      const addr = await this.getHostAddr(env, proxy.host);
+      await this.fillConfig(env, {
+        "server": addr,
+        "server_port": proxy.port,
+      }, config);
+    }
 
     return new Response("fuck you");
   },
