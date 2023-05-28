@@ -35,16 +35,18 @@ export default {
   },
 
   async getProxiesConfig(env: Env, proxyTypes: Array<string>): Promise<Map<string, object>> {
-    var result: Map<string, object> = {};
+    var result: Map<string, object> = new Map();
     for (const type of proxyTypes) {
       const resp = await fetch(
-        `https://api.github.com/repos/${env.GITHUB_REPO}/contents/proxies/${type}.json`,
+        `https://api.github.com/repos/${env.GITHUB_REPO}/contents/proxies/${type}.json?ref=${env.GITHUB_REF}`,
         {
           headers: {
+            "Accept": "application/vnd.github.raw",
             "User-Agent": "Mutong's Cloudflare Workers",
             "Authorization": `Bearer ${env.GITHUB_TOKEN}`
           }
         });
+      result.set(type, JSON.parse(await resp.text()));
     }
     return result;
   },
