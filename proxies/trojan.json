@@ -1,12 +1,12 @@
 {
   "type": "trojan",
-  "server": { "$ref": "args:#/server" },
-  "server_port": { "$ref": "args:#/server_port" },
-  "password": { "$ref": "secrets:#/trojan_password" },
+  "server": { "$ref": "args:/server" },
+  "server_port": { "$ref": "args:/server_port" },
+  "password": { "$ref": "secrets:/trojan_password" },
   "tls": {
     "enabled": true,
     "server_name": "127.0.0.1",
     "alpn": [ "h2" ],
-    "certificate": { "$ref": "secrets:#/server_certificate" }
+    "certificate": { "$ref": "secrets:/server_certificate" }
   }
 }

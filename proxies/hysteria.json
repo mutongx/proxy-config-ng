@@ -1,14 +1,14 @@
 {
   "type": "hysteria",
-  "server": { "$ref": "args:#/server" },
-  "server_port": { "$ref": "args:#/server_port" },
-  "up": { "$ref": "args:#/client_up" },
-  "down": { "$ref": "args:#/client_down" },
-  "auth_str": { "$ref": "secrets:#/hysteria_auth_str" },
+  "server": { "$ref": "args:/server" },
+  "server_port": { "$ref": "args:/server_port" },
+  "up": { "$ref": "args:/client_up?default=10 Mbps" },
+  "down": { "$ref": "args:/client_down?default=100 Mbps" },
+  "auth_str": { "$ref": "secrets:/hysteria_auth_str" },
   "tls": {
     "enabled": true,
     "server_name": "127.0.0.1",
     "alpn": [ "h3" ],
-    "certificate": { "$ref": "secrets:#/server_certificate" }
+    "certificate": { "$ref": "secrets:/server_certificate" }
   }
 }
