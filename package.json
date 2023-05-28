@@ -10,5 +10,9 @@
   "scripts": {
     "start": "wrangler dev",
     "deploy": "wrangler publish"
+  },
+  "dependencies": {
+    "@types/json-pointer": "^1.0.31",
+    "json-pointer": "^0.6.2"
   }
 }
