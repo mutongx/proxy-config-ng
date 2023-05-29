@@ -17,6 +17,15 @@ export class SingboxConfigurator implements Configurator {
       ],
       "outbounds": outboundsConfig.map((o) => o.config),
     }
+    if (userConfig.enable_tun) {
+      result["inbounds"].append({
+        "type": "tun",
+        "inet4_address": "172.19.0.1/30",
+        "auto_route": true,
+        "strict_route": true,
+        "sniff": true,
+      })
+    }
     if (userConfig.external_controller) {
       result["experimental"] = {
         "clash_api": {
