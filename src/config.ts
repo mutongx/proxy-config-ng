@@ -12,6 +12,7 @@ export class SingboxConfigurator implements Configurator {
           "type": "mixed",
           "listen": userConfig.listen || "127.0.0.1",
           "listen_port": userConfig.listen_port || 5353,
+          "sniff": true,
         }
       ],
       "outbounds": outboundsConfig.map((o) => o.config),
