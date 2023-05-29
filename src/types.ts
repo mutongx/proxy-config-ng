@@ -36,3 +36,8 @@ export type Secret = {
   name: string;
   value: string;
 };
+
+export type Outbound = {
+  host: string;
+  config: any;
+};

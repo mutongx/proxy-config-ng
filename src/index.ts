@@ -1,4 +1,5 @@
-import { Env } from "./types";
+import { ClashConfigurator, Configurator, SingboxConfigurator } from "./config";
+import { Env, Outbound } from "./types";
 import Worker from "./worker"
 import * as pointer from "json-pointer";
 
@@ -45,6 +46,25 @@ export default {
       return new Response("bad request", { status: 400 });
     }
 
+    var format: string | null = url.searchParams.get("format");
+    if (!format) {
+      const filename = paths[2];
+      if (filename == "config.json") {
+        format = "sing-box";
+      } else if (filename == "config.yaml") {
+        format = "clash";
+      }
+    }
+
+    var configurator: Configurator;
+    if (format == "sing-box") {
+      configurator = new SingboxConfigurator();
+    } else if (format == "clash") {
+      configurator = new ClashConfigurator();
+    } else {
+      return new Response("bad request", { status: 400 });
+    }
+
     const token = paths[1];
     const worker = new Worker(env);
 
@@ -52,12 +72,13 @@ export default {
     if (!user) {
       return new Response("not found", { status: 404 });
     }
+    user.config = user.config || {};
 
     const accesses = await worker.getAccesses(user);
     const proxies = await worker.getProxies(accesses);
     const proxyConfigs = await worker.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
 
-    var outboundsConfig = []
+    var outboundsConfig: Outbound[] = []
     for (const proxy of proxies) {
       const config = structuredClone(proxyConfigs.get(proxy.type));
       const addr = await worker.getHostAddr(proxy.host);
@@ -66,20 +87,12 @@ export default {
         "server_port": proxy.port,
         ...(user.config ? user.config.args : null)
       });
-      outboundsConfig.push(config);
+      outboundsConfig.push({
+        host: proxy.host,
+        config: config,
+      });
     }
 
-    const result = {
-      "inbounds": [
-        {
-          "type": "mixed",
-          "listen": "127.0.0.1",
-          "listen_port": 5353,
-        }
-      ],
-      "outbounds": outboundsConfig,
-    }
-
-    return new Response(JSON.stringify(result, null, 2));
+    return new Response(JSON.stringify(configurator.generate(user.config, outboundsConfig), null, 2));
   },
 };
