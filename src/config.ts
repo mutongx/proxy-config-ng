@@ -23,7 +23,34 @@ export class SingboxConfigurator implements Configurator {
           "sniff": true,
         }
       ],
-      "outbounds": outboundsConfig.map((o) => o.config),
+      "outbounds": [
+        ...outboundsConfig.map((o) => o.config),
+        {
+          "type": "direct",
+          "tag": "direct",
+        },
+        {
+          "type": "block",
+          "tag": "block",
+        },
+        {
+          "type": "dns",
+          "tag": "dns",
+        }
+      ],
+      "route": {
+        "rules": [
+          {
+            "protocol": "dns",
+            "outbound": "dns",
+          },
+          {
+            "geoip": ["private"],
+            "outbound": "direct"
+          }
+        ],
+        "auto_detect_interface": true,
+      }
     }
     if (userConfig.enable_tun) {
       result["inbounds"].push({
