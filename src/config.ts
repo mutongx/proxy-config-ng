@@ -7,6 +7,14 @@ export interface Configurator {
 export class SingboxConfigurator implements Configurator {
   generate(userConfig: any, outboundsConfig: Outbound[]) {
     var result: any = {
+      "dns": {
+        "servers": [
+          {
+            "tag": "cloudflare",
+            "address": "tls://1.1.1.1"
+          }
+        ],
+      },
       "inbounds": [
         {
           "type": "mixed",
