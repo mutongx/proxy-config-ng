@@ -4,13 +4,9 @@ compatibility_date = "2023-04-09"
 
 [vars]
 GITHUB_REPO = "mutongx/proxy-config-ng"
+GITHUB_REF = "main"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "router"
 database_id = "9d39dcaf-4007-407f-99e1-4ce9afa3e90c"
-
-[[kv_namespaces]]
-binding = "SECRETS"
-id = "9633387d690f47448930283459af7018"
-preview_id = "9633387d690f47448930283459af7018"

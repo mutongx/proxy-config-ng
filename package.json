@@ -4,11 +4,15 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230404.0",
     "typescript": "^5.0.4",
-    "wrangler": "2.14.0"
+    "wrangler": "^3.0.1"
   },
   "private": true,
   "scripts": {
     "start": "wrangler dev",
     "deploy": "wrangler publish"
+  },
+  "dependencies": {
+    "@types/json-pointer": "^1.0.31",
+    "json-pointer": "^0.6.2"
   }
 }
