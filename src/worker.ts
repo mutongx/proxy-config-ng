@@ -12,6 +12,9 @@ export default class {
   async getUser(token: string): Promise<User | null> {
     const stmt = this.env.DB.prepare("SELECT * FROM user WHERE token = ?1").bind(token);
     const user = await stmt.first() as User | null;
+    if (user?.config) {
+      user.config = JSON.parse(user.config);
+    }
     return user;
   }
 
@@ -30,6 +33,11 @@ export default class {
     const stmt = this.env.DB.prepare("SELECT * FROM proxy WHERE " + Array(tags.length).fill("tag = ?").join(" OR ")).bind(...tags);
     const result = await stmt.all();
     const proxies = result.results! as Array<Proxy>;
+    for (var proxy of proxies) {
+      if (proxy.config) {
+        proxy.config = JSON.parse(proxy.config);
+      }
+    }
     return proxies;
   }
 
