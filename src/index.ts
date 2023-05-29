@@ -40,7 +40,7 @@ export default {
         {
           "type": "mixed",
           "listen": "127.0.0.1",
-          "listen_port": 7890,
+          "listen_port": 5353,
         }
       ],
       "outbounds": proxyResults,
