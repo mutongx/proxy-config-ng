@@ -5,8 +5,9 @@ export interface Configurator {
 }
 
 export class SingboxConfigurator implements Configurator {
+  CLASH_EXTERNAL_UI_URL = "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip";
   generate(userConfig: any, outboundsConfig: Outbound[]) {
-    return {
+    var result: any = {
       "inbounds": [
         {
           "type": "mixed",
@@ -16,6 +17,15 @@ export class SingboxConfigurator implements Configurator {
       ],
       "outbounds": outboundsConfig.map((o) => o.config),
     }
+    if (userConfig.external_controller) {
+      result["experimental"] = {
+        "clash_api": {
+          "external_controller": userConfig.external_controller,
+          "external_ui_download_url": this.CLASH_EXTERNAL_UI_URL,
+        }
+      }
+    }
+    return result;
   }
 };
 
@@ -56,12 +66,15 @@ export class ClashConfigurator implements Configurator {
     const proxies = outboundsConfig
       .map((o) => this.convert(o))
       .filter((value) => value != null);
-    const result = {
+    var result: any = {
       "mixed-port": userConfig.listen_port || 7890,
       "bind-address": userConfig.listen || "127.0.0.1",
       "allow-lan": userConfig.listen ? true : false,
       "mode": "global",
       "proxies": proxies,
+    }
+    if (userConfig.external_controller) {
+      result["external-controller"] = userConfig.external_controller;
     }
     return result;
   }
