@@ -5,7 +5,6 @@ export interface Configurator {
 }
 
 export class SingboxConfigurator implements Configurator {
-  CLASH_EXTERNAL_UI_URL = "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip";
   generate(userConfig: any, outboundsConfig: Outbound[]) {
     var result: any = {
       "inbounds": [
@@ -21,7 +20,6 @@ export class SingboxConfigurator implements Configurator {
       result["experimental"] = {
         "clash_api": {
           "external_controller": userConfig.external_controller,
-          "external_ui_download_url": this.CLASH_EXTERNAL_UI_URL,
         }
       }
     }
