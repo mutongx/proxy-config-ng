@@ -121,6 +121,7 @@ export default {
     const proxies = await this.getProxies(env, accesses);
     const proxyTypes = [... new Set(proxies.map((val) => val.type))]
     const proxyConfigs = await this.getProxiesConfig(env, proxyTypes);
+    var proxyResults = []
 
     for (const proxy of proxies) {
       const config = structuredClone(proxyConfigs.get(proxy.type));
@@ -129,8 +130,20 @@ export default {
         "server": addr,
         "server_port": proxy.port,
       }, config);
+      proxyResults.push(config);
     }
 
-    return new Response("fuck you");
+    const result = {
+      "inbounds": [
+        {
+          "type": "mixed",
+          "listen": "127.0.0.1",
+          "listen_port": 7890,
+        }
+      ],
+      "outbounds": proxyResults,
+    }
+
+    return new Response(JSON.stringify(result, null, 2));
   },
 };
