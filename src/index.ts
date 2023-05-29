@@ -47,6 +47,9 @@ export default {
             "Authorization": `Bearer ${env.GITHUB_TOKEN}`
           }
         });
+      if (!resp.ok) {
+        throw new Error(`failed to request proxy config: ${resp.status} ${resp.statusText}`)
+      }
       result.set(type, JSON.parse(await resp.text()));
     }
     return result;
