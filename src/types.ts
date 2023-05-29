@@ -9,7 +9,7 @@ export interface Env {
 export type User = {
   name: string;
   token: string;
-  config: object | null;
+  config: any;
 };
 
 export type Host = {
@@ -22,7 +22,7 @@ export type Proxy = {
   host: string;
   port: number;
   type: string;
-  config: object | null;
+  config: any;
   tag: string;
 };
 
