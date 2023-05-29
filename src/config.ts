@@ -23,7 +23,7 @@ export class ClashConfigurator implements Configurator {
 
   counter: Map<string, number> = new Map();
 
-  converter: {[key: string]: (o: Outbound) => any} = {
+  converter: { [key: string]: (o: Outbound) => any } = {
     trojan: (o: Outbound) => {
       const label = `${o.host}-${o.config.type}`
       if (!this.counter.has(label)) {
@@ -53,14 +53,15 @@ export class ClashConfigurator implements Configurator {
   }
 
   generate(userConfig: any, outboundsConfig: any[]) {
+    const proxies = outboundsConfig
+      .map((o) => this.convert(o))
+      .filter((value) => value != null);
     const result = {
       "mixed-port": userConfig.listen_port || 7890,
       "bind-address": userConfig.listen || "127.0.0.1",
       "allow-lan": userConfig.listen ? true : false,
       "mode": "global",
-      "proxies": outboundsConfig
-        .map((o) => this.convert(o))
-        .filter((value) => value != null),
+      "proxies": proxies,
     }
     return result;
   }
