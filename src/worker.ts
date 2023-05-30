@@ -4,6 +4,8 @@ import { Access, Host, Proxy, Secret, User } from "./types";
 export default class {
 
   env: Env;
+  hostCache: Map<string, Host> | null = null;
+  secretCache: Map<string, string> | null = null;
 
   constructor(env: Env) {
     this.env = env;
@@ -59,21 +61,28 @@ export default class {
   }
 
   async getHostAddr(name: string) {
-    const stmt = this.env.DB.prepare("SELECT * FROM host WHERE name = ?1").bind(name);
-    const host = await stmt.first() as Host | null;
-    if (!host) {
-      return null;
+    if (!this.hostCache) {
+      const stmt = this.env.DB.prepare("SELECT * FROM host");
+      const result = await stmt.all();
+      this.hostCache = new Map();
+      for (const host of result.results! as Array<Host>) {
+        this.hostCache.set(host.name, host);
+      }
     }
-    return host.addr4;
+    const host = this.hostCache.get(name);
+    return host ? host.addr4 : null;
   }
 
   async getSecret(name: string) {
-    const stmt = this.env.DB.prepare("SELECT * FROM secret WHERE name = ?1").bind(name);
-    const secret = await stmt.first() as Secret | null;
-    if (!secret) {
-      return null;
+    if (!this.secretCache) {
+      const stmt = this.env.DB.prepare("SELECT * FROM secret");
+      const result = await stmt.all();
+      this.secretCache = new Map();
+      for (const secret of result.results! as Array<Secret>) {
+        this.secretCache.set(secret.name, secret.value);
+      }
     }
-    return secret.value;
+    return this.secretCache.get(name) || null;
   }
 
 }
