@@ -25,12 +25,8 @@ export default class {
     return accesses;
   }
 
-  async getProxies(access: Array<Access>): Promise<Array<Proxy>> {
-    const tags = access.filter((val) => val.class == "proxy").map((val) => val.tag);
-    if (!tags) {
-      return [];
-    }
-    const stmt = this.env.DB.prepare("SELECT * FROM proxy WHERE " + Array(tags.length).fill("tag = ?").join(" OR ")).bind(...tags);
+  async getProxies(user: User): Promise<Array<Proxy>> {
+    const stmt = this.env.DB.prepare("SELECT * FROM proxy JOIN access WHERE access.class = 'proxy' AND access.tag = proxy.tag AND access.user = ?1;").bind(user.name);
     const result = await stmt.all();
     const proxies = result.results! as Array<Proxy>;
     for (var proxy of proxies) {
