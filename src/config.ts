@@ -1,11 +1,39 @@
 import { Outbound } from "./types";
 
+class UniqueKeyGenerator {
+
+  counter: Map<string, number> = new Map();
+  keys: string[] = [];
+
+  push(key: string): string {
+    if (!this.counter.has(key)) {
+      this.counter.set(key, 0);
+    }
+    const count = this.counter.get(key)!;
+    this.counter.set(key, count + 1);
+    const value = `${key}-${count}`;
+    this.keys.push(value);
+    return value;
+  }
+
+};
+
 export interface Configurator {
   generate(userConfig: any, outboundsConfig: Outbound[]): any;
 }
 
 export class SingboxConfigurator implements Configurator {
+
+  keyGenerator = new UniqueKeyGenerator();
+
+  addTag(o: Outbound) {
+    const tag = this.keyGenerator.push(`${o.host}-${o.config.type}`);
+    o.config.tag = tag;
+    return o;
+  }
+
   generate(userConfig: any, outboundsConfig: Outbound[]) {
+    const outbounds = outboundsConfig.map((o) => this.addTag(o)).map((o) => o.config);
     var result: any = {
       "dns": {
         "servers": [
@@ -24,7 +52,7 @@ export class SingboxConfigurator implements Configurator {
         }
       ],
       "outbounds": [
-        ...outboundsConfig.map((o) => o.config),
+        ...outbounds,
         {
           "type": "direct",
           "tag": "direct",
@@ -36,7 +64,7 @@ export class SingboxConfigurator implements Configurator {
         {
           "type": "dns",
           "tag": "dns",
-        }
+        },
       ],
       "route": {
         "rules": [
@@ -47,7 +75,7 @@ export class SingboxConfigurator implements Configurator {
           {
             "geoip": ["private"],
             "outbound": "direct"
-          }
+          },
         ],
         "auto_detect_interface": true,
       }
@@ -74,18 +102,13 @@ export class SingboxConfigurator implements Configurator {
 
 export class ClashConfigurator implements Configurator {
 
-  counter: Map<string, number> = new Map();
+  keyGenerator = new UniqueKeyGenerator();
 
   converter: { [key: string]: (o: Outbound) => any } = {
     trojan: (o: Outbound) => {
-      const label = `${o.host}-${o.config.type}`
-      if (!this.counter.has(label)) {
-        this.counter.set(label, 0);
-      }
-      const idx = this.counter.get(label)!;
-      this.counter.set(label, idx + 1);
+      const name = this.keyGenerator.push(`${o.host}-${o.config.type}`);
       return {
-        "name": `${label}-${idx}`,
+        "name": name,
         "type": "trojan",
         "server": o.config.server,
         "port": o.config.server_port,
