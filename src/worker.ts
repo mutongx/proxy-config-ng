@@ -1,5 +1,5 @@
 import { Env } from "./types";
-import { Access, Host, Proxy, Secret, User } from "./types";
+import { Access, Host, Proxy, Rule, Secret, User } from "./types";
 
 export default class {
 
@@ -37,6 +37,18 @@ export default class {
       }
     }
     return proxies;
+  }
+
+  async getRules(user: User): Promise<Array<Rule>> {
+    const stmt = this.env.DB.prepare("SELECT * FROM rule JOIN access WHERE access.class = 'rule' AND access.tag = rule.tag AND access.user = ?1;").bind(user.name);
+    const result = await stmt.all();
+    const rules = result.results! as Array<Rule>;
+    for (var rule of rules) {
+      if (rule.config) {
+        rule.config = JSON.parse(rule.config);
+      }
+    }
+    return rules;
   }
 
   async getProxiesConfig(proxyTypes: Array<string>): Promise<Map<string, object>> {

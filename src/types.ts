@@ -26,6 +26,12 @@ export type Proxy = {
   tag: string;
 };
 
+export type Rule = {
+  type: string;
+  config: any;
+  tag: string;
+}
+
 export type Access = {
   user: string;
   class: string;
