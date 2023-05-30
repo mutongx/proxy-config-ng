@@ -92,6 +92,6 @@ export default {
       });
     }
 
-    return new Response(JSON.stringify(configurator.generate(user.config, outboundsConfig), null, 2));
+    return new Response(JSON.stringify(configurator.create(user.config, outboundsConfig), null, 2));
   },
 };
