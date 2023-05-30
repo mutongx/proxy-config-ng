@@ -49,14 +49,16 @@ export default class {
           "User-Agent": "Mutong's Cloudflare Workers",
           "Authorization": `Bearer ${this.env.GITHUB_TOKEN}`
         }
+      }).then((resp) => {
+        if (!resp.ok) {
+          throw new Error(`failed to request proxy config: ${resp.status} ${resp.statusText}`);
+        }
+        return resp.json();
       }));
-    await Promise.all((await Promise.all(fetches)).map(async (resp, idx) => {
+    (await Promise.all(fetches)).map((content: any, idx) => {
       const type = proxyTypes[idx];
-      if (!resp.ok) {
-        throw new Error(`failed to request proxy config: ${resp.status} ${resp.statusText}`);
-      }
-      result.set(type, JSON.parse(await resp.text()));
-    }));
+      result.set(type, content);
+    })
     return result;
   }
 
