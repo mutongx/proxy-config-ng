@@ -149,7 +149,38 @@ export class ClashConfigurator implements Configurator {
     return fn(o);
   }
 
-  create(userConfig: any, outboundsConfig: any[]) {
+  *iterate(obj: any) {
+    if (!obj) {
+      return;
+    }
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        yield item;
+      }
+    } else {
+      yield obj;
+    }
+  }
+
+  *translate(rules: Rule[]) {
+    for (const rule of rules) {
+      if (rule.type != "proxy") {
+        continue;
+      }
+      var outbound: string = rule.config.outbound;
+      if (outbound == "proxy" || outbound == "direct") {
+        outbound = outbound.toUpperCase();
+      }
+      for (const item of this.iterate(rule.config.domain_suffix)) {
+        yield `DOMAIN-SUFFIX,${item},${outbound}`
+      }
+      for (const item of this.iterate(rule.config.geoip)) {
+        yield `GEOIP,${item.toUpperCase()},${outbound}`
+      }
+    }
+  }
+
+  create(userConfig: any, outboundsConfig: Outbound[], rules: Rule[]) {
     const proxies = outboundsConfig
       .map((o) => this.convert(o))
       .filter((value) => value != null);
@@ -172,6 +203,7 @@ export class ClashConfigurator implements Configurator {
         })),
       ],
       "rules": [
+        ...this.translate(rules),
         "MATCH,PROXY",
       ]
     }
