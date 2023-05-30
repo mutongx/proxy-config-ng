@@ -111,6 +111,7 @@ export class SingboxConfigurator implements Configurator {
       result["experimental"] = {
         "clash_api": {
           "external_controller": userConfig.external_controller,
+          "store_selected": true,
         }
       }
     }
