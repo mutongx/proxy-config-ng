@@ -54,6 +54,11 @@ export class SingboxConfigurator implements Configurator {
       "outbounds": [
         ...outbounds,
         {
+          "type": "selector",
+          "tag": "proxy",
+          "outbounds": this.keyGenerator.keys,
+        },
+        {
           "type": "direct",
           "tag": "direct",
         },
@@ -136,8 +141,15 @@ export class ClashConfigurator implements Configurator {
       "mixed-port": userConfig.listen_port || 7890,
       "bind-address": userConfig.listen || "127.0.0.1",
       "allow-lan": userConfig.listen ? true : false,
-      "mode": "global",
+      "mode": "rule",
       "proxies": proxies,
+      "proxy-groups": [
+        {
+          "name": "PROXY",
+          "type": "select",
+          "proxies": this.keyGenerator.keys,
+        }
+      ]
     }
     if (userConfig.external_controller) {
       result["external-controller"] = userConfig.external_controller;
