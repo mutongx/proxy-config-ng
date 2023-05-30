@@ -45,5 +45,7 @@ export type Secret = {
 
 export type Outbound = {
   host: string;
+  port: number;
+  type: string;
   config: any;
 };

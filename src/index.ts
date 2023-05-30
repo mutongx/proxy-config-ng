@@ -89,6 +89,8 @@ export default {
       });
       outboundsConfig.push({
         host: proxy.host,
+        port: proxy.port,
+        type: proxy.type,
         config: config,
       });
     }

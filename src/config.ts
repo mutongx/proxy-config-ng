@@ -33,7 +33,7 @@ export class SingboxConfigurator implements Configurator {
   generator = new ProxyNameGenerator();
 
   addTag(o: Outbound) {
-    const tag = this.generator.push(o.host, o.config.type);
+    const tag = this.generator.push(o.host, o.type);
     o.config.tag = tag;
     return o;
   }
@@ -127,7 +127,7 @@ export class ClashConfigurator implements Configurator {
 
   converter: { [key: string]: (o: Outbound) => any } = {
     trojan: (o: Outbound) => {
-      const name = this.generator.push(o.host, o.config.type);
+      const name = this.generator.push(o.host, o.type);
       return {
         "name": name,
         "type": "trojan",
