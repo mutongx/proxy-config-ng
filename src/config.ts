@@ -82,6 +82,7 @@ export class SingboxConfigurator implements Configurator {
             "outbound": "direct"
           },
         ],
+        "final": "proxy",
         "auto_detect_interface": true,
       }
     }
@@ -149,6 +150,9 @@ export class ClashConfigurator implements Configurator {
           "type": "select",
           "proxies": this.keyGenerator.keys,
         }
+      ],
+      "rules": [
+        "MATCH,PROXY",
       ]
     }
     if (userConfig.external_controller) {
