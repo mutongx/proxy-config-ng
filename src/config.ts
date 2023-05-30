@@ -1,38 +1,44 @@
 import { Outbound } from "./types";
 
-class UniqueKeyGenerator {
+class ProxyNameGenerator {
 
   counter: Map<string, number> = new Map();
-  keys: string[] = [];
+  proxies: string[] = [];
+  hosts: Map<string, string[]> = new Map();
 
-  push(key: string): string {
+  push(host: string, type: string): string {
+    const key = `${host}-${type}`
     if (!this.counter.has(key)) {
       this.counter.set(key, 0);
     }
     const count = this.counter.get(key)!;
     this.counter.set(key, count + 1);
-    const value = `${key}-${count}`;
-    this.keys.push(value);
-    return value;
+    const name = `${key}-${count}`;
+    this.proxies.push(name);
+    if (!this.hosts.has(host)) {
+      this.hosts.set(host, []);
+    }
+    this.hosts.get(host)?.push(name);
+    return name;
   }
 
 };
 
 export interface Configurator {
-  generate(userConfig: any, outboundsConfig: Outbound[]): any;
+  create(userConfig: any, outboundsConfig: Outbound[]): any;
 }
 
 export class SingboxConfigurator implements Configurator {
 
-  keyGenerator = new UniqueKeyGenerator();
+  generator = new ProxyNameGenerator();
 
   addTag(o: Outbound) {
-    const tag = this.keyGenerator.push(`${o.host}-${o.config.type}`);
+    const tag = this.generator.push(o.host, o.config.type);
     o.config.tag = tag;
     return o;
   }
 
-  generate(userConfig: any, outboundsConfig: Outbound[]) {
+  create(userConfig: any, outboundsConfig: Outbound[]) {
     const outbounds = outboundsConfig.map((o) => this.addTag(o)).map((o) => o.config);
     var result: any = {
       "dns": {
@@ -56,8 +62,13 @@ export class SingboxConfigurator implements Configurator {
         {
           "type": "selector",
           "tag": "proxy",
-          "outbounds": this.keyGenerator.keys,
+          "outbounds": this.generator.proxies,
         },
+        ...Array.from(this.generator.hosts, ([key, value]) => ({
+          "type": "selector",
+          "tag": key,
+          "outbounds": value,
+        })),
         {
           "type": "direct",
           "tag": "direct",
@@ -108,11 +119,11 @@ export class SingboxConfigurator implements Configurator {
 
 export class ClashConfigurator implements Configurator {
 
-  keyGenerator = new UniqueKeyGenerator();
+  generator = new ProxyNameGenerator();
 
   converter: { [key: string]: (o: Outbound) => any } = {
     trojan: (o: Outbound) => {
-      const name = this.keyGenerator.push(`${o.host}-${o.config.type}`);
+      const name = this.generator.push(o.host, o.config.type);
       return {
         "name": name,
         "type": "trojan",
@@ -134,7 +145,7 @@ export class ClashConfigurator implements Configurator {
     return fn(o);
   }
 
-  generate(userConfig: any, outboundsConfig: any[]) {
+  create(userConfig: any, outboundsConfig: any[]) {
     const proxies = outboundsConfig
       .map((o) => this.convert(o))
       .filter((value) => value != null);
@@ -148,8 +159,13 @@ export class ClashConfigurator implements Configurator {
         {
           "name": "PROXY",
           "type": "select",
-          "proxies": this.keyGenerator.keys,
-        }
+          "proxies": this.generator.proxies,
+        },
+        ...Array.from(this.generator.hosts, ([key, value]) => ({
+          "name": key,
+          "type": "select",
+          "proxies": value,
+        })),
       ],
       "rules": [
         "MATCH,PROXY",
