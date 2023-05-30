@@ -28,7 +28,7 @@ export default class {
   }
 
   async getProxies(user: User): Promise<Array<Proxy>> {
-    const stmt = this.env.DB.prepare("SELECT * FROM proxy JOIN access WHERE access.class = 'proxy' AND access.tag = proxy.tag AND access.user = ?1;").bind(user.name);
+    const stmt = this.env.DB.prepare("SELECT * FROM proxy JOIN access WHERE access.class = 'proxy' AND access.tag = proxy.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
     const result = await stmt.all();
     const proxies = result.results! as Array<Proxy>;
     for (var proxy of proxies) {
@@ -40,7 +40,7 @@ export default class {
   }
 
   async getRules(user: User): Promise<Array<Rule>> {
-    const stmt = this.env.DB.prepare("SELECT * FROM rule JOIN access WHERE access.class = 'rule' AND access.tag = rule.tag AND access.user = ?1;").bind(user.name);
+    const stmt = this.env.DB.prepare("SELECT * FROM rule JOIN access WHERE access.class = 'rule' AND access.tag = rule.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
     const result = await stmt.all();
     const rules = result.results! as Array<Rule>;
     for (var rule of rules) {
