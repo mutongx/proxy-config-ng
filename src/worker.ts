@@ -48,13 +48,13 @@ export default class {
           "Authorization": `Bearer ${this.env.GITHUB_TOKEN}`
         }
       }));
-    await (await Promise.all(fetches)).map(async (resp, idx) => {
+    await Promise.all((await Promise.all(fetches)).map(async (resp, idx) => {
       const type = proxyTypes[idx];
       if (!resp.ok) {
         throw new Error(`failed to request proxy config: ${resp.status} ${resp.statusText}`);
       }
       result.set(type, JSON.parse(await resp.text()));
-    });
+    }));
     return result;
   }
 
