@@ -39,21 +39,22 @@ export default class {
 
   async getProxiesConfig(proxyTypes: Array<string>): Promise<Map<string, object>> {
     var result: Map<string, object> = new Map();
-    for (const type of proxyTypes) {
-      const resp = await fetch(
-        `https://api.github.com/repos/${this.env.GITHUB_REPO}/contents/proxies/${type}.json?ref=${this.env.GITHUB_REF}`,
-        {
-          headers: {
-            "Accept": "application/vnd.github.raw",
-            "User-Agent": "Mutong's Cloudflare Workers",
-            "Authorization": `Bearer ${this.env.GITHUB_TOKEN}`
-          }
-        });
+    const fetches = proxyTypes.map((type) => fetch(
+      `https://api.github.com/repos/${this.env.GITHUB_REPO}/contents/proxies/${type}.json?ref=${this.env.GITHUB_REF}`,
+      {
+        headers: {
+          "Accept": "application/vnd.github.raw",
+          "User-Agent": "Mutong's Cloudflare Workers",
+          "Authorization": `Bearer ${this.env.GITHUB_TOKEN}`
+        }
+      }));
+    await (await Promise.all(fetches)).map(async (resp, idx) => {
+      const type = proxyTypes[idx];
       if (!resp.ok) {
         throw new Error(`failed to request proxy config: ${resp.status} ${resp.statusText}`);
       }
       result.set(type, JSON.parse(await resp.text()));
-    }
+    });
     return result;
   }
 
