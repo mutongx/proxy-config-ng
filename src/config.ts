@@ -111,7 +111,9 @@ export class SingboxConfigurator implements Configurator {
       result["experimental"] = {
         "clash_api": {
           "external_controller": userConfig.external_controller,
-          "store_selected": true,
+          "external_ui": "ui",
+          "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
+          "store_selected": true
         }
       }
     }
