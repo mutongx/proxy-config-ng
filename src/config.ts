@@ -1,4 +1,4 @@
-import { Outbound } from "./types";
+import { Outbound, Rule } from "./types";
 
 class ProxyNameGenerator {
 
@@ -25,7 +25,7 @@ class ProxyNameGenerator {
 };
 
 export interface Configurator {
-  create(userConfig: any, outboundsConfig: Outbound[]): any;
+  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[]): any;
 }
 
 export class SingboxConfigurator implements Configurator {
@@ -38,7 +38,7 @@ export class SingboxConfigurator implements Configurator {
     return o;
   }
 
-  create(userConfig: any, outboundsConfig: Outbound[]) {
+  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[]) {
     const outbounds = outboundsConfig.map((o) => this.addTag(o)).map((o) => o.config);
     var result: any = {
       "dns": {
@@ -89,9 +89,10 @@ export class SingboxConfigurator implements Configurator {
             "outbound": "dns",
           },
           {
-            "geoip": ["private"],
+            "geoip": "private",
             "outbound": "direct"
           },
+          ...rulesConfig.map((r) => r.config),
         ],
         "final": "proxy",
         "auto_detect_interface": true,

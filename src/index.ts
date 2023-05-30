@@ -75,6 +75,7 @@ export default {
     user.config = user.config || {};
 
     const proxies = await worker.getProxies(user);
+    const rules = await worker.getRules(user);
     const proxyConfigs = await worker.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
 
     var outboundsConfig: Outbound[] = []
@@ -92,6 +93,6 @@ export default {
       });
     }
 
-    return new Response(JSON.stringify(configurator.create(user.config, outboundsConfig), null, 2));
+    return new Response(JSON.stringify(configurator.create(user.config, outboundsConfig, rules), null, 2));
   },
 };
