@@ -41,6 +41,9 @@ export class SingboxConfigurator implements Configurator {
   create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]) {
     const outbounds = outboundsConfig.map((o) => this.addTag(o)).map((o) => o.config);
     var result: any = {
+      "log": {
+        "level": userConfig.log_level || "info",
+      },
       "dns": {
         "servers": [
           ...dnsConfig.map((s) => ({
