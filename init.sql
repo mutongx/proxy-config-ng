@@ -13,3 +13,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS constraint__proxy__host__port__type ON proxy (
 CREATE UNIQUE INDEX IF NOT EXISTS constraint__dns__name ON dns (name);
 CREATE UNIQUE INDEX IF NOT EXISTS constraint__access__user__class__tag ON access (user, class, tag);
 CREATE UNIQUE INDEX IF NOT EXISTS constraint__secret__name ON secret (name);
+
+CREATE INDEX IF NOT EXISTS index__proxy__tag__priority ON proxy (tag, priority);
+CREATE INDEX IF NOT EXISTS index__rule__tag__priority ON rule (tag, priority);
+CREATE INDEX IF NOT EXISTS index__dns__tag__priority ON dns (tag, priority);
