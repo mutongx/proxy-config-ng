@@ -72,19 +72,29 @@ export default {
     if (!user) {
       return new Response("not found", { status: 404 });
     }
-    user.config = user.config || {};
+
+    const userConfig = {
+      ...user.config,
+      ...Object.fromEntries(Array.from(url.searchParams).map(([key, value]) => {
+        try {
+          return [key, JSON.parse(value)];
+        } catch (e) {
+          return [key, value];
+        }
+      })),
+    };
 
     const [proxies, rules, dns] = await Promise.all([worker.getProxies(user), worker.getRules(user), worker.getDns(user)]);
-    const proxyConfigs = await worker.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
+    const proxiesConfig = await worker.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
 
     var outboundsConfig: Outbound[] = []
     for (const proxy of proxies) {
-      const config = structuredClone(proxyConfigs.get(proxy.type));
+      const config = structuredClone(proxiesConfig.get(proxy.type));
       const addr = await worker.getHostAddr(proxy.host);
       await this.fillConfig(worker, config, {
+        ...userConfig,
         "server": addr,
         "server_port": proxy.port,
-        ...(user.config ? user.config.args : null)
       });
       outboundsConfig.push({
         host: proxy.host,
@@ -94,6 +104,6 @@ export default {
       });
     }
 
-    return new Response(JSON.stringify(configurator.create(user.config, outboundsConfig, rules, dns), null, 2));
+    return new Response(JSON.stringify(configurator.create(userConfig, outboundsConfig, rules, dns), null, 2));
   },
 };
