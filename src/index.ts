@@ -74,9 +74,7 @@ export default {
     }
     user.config = user.config || {};
 
-    const proxies = await worker.getProxies(user);
-    const rules = await worker.getRules(user);
-    const dns = await worker.getDns(user);
+    const [proxies, rules, dns] = await Promise.all([worker.getProxies(user), worker.getRules(user), worker.getDns(user)]);
     const proxyConfigs = await worker.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
 
     var outboundsConfig: Outbound[] = []
