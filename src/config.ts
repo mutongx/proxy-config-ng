@@ -1,4 +1,4 @@
-import { Outbound, Rule } from "./types";
+import { Outbound, Rule, Dns } from "./types";
 
 class ProxyNameGenerator {
 
@@ -25,7 +25,7 @@ class ProxyNameGenerator {
 };
 
 export interface Configurator {
-  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[]): any;
+  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]): any;
 }
 
 export class SingboxConfigurator implements Configurator {
@@ -38,16 +38,22 @@ export class SingboxConfigurator implements Configurator {
     return o;
   }
 
-  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[]) {
+  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]) {
     const outbounds = outboundsConfig.map((o) => this.addTag(o)).map((o) => o.config);
     var result: any = {
       "dns": {
         "servers": [
-          {
-            "tag": "cloudflare",
-            "address": "tls://1.1.1.1"
-          }
+          ...dnsConfig.map((s) => ({
+            ...s.config,
+            "tag": s.name,
+          }))
         ],
+        "rules": [
+          ...dnsConfig.filter((s) => s.rule !== null).map((s) => ({
+            ...s.rule,
+            "server": s.name,
+          })).filter((s) => s !== null),
+        ]
       },
       "inbounds": [
         {

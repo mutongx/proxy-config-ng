@@ -1,5 +1,5 @@
 import { Env } from "./types";
-import { Access, Host, Proxy, Rule, Secret, User } from "./types";
+import { Access, Host, Proxy, Rule, Dns, Secret, User } from "./types";
 
 export default class {
 
@@ -49,6 +49,21 @@ export default class {
       }
     }
     return rules;
+  }
+
+  async getDns(user: User): Promise<Array<Dns>> {
+    const stmt = this.env.DB.prepare("SELECT * FROM dns JOIN access WHERE access.class = 'dns' AND access.tag = dns.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
+    const result = await stmt.all();
+    const dns = result.results as Array<Dns>;
+    for (var s of dns) {
+      if (s.config) {
+        s.config = JSON.parse(s.config);
+      }
+      if (s.rule) {
+        s.rule = JSON.parse(s.rule);
+      }
+    }
+    return dns;
   }
 
   async getProxiesConfig(proxyTypes: Array<string>): Promise<Map<string, object>> {
