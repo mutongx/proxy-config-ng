@@ -32,6 +32,13 @@ export type Rule = {
   tag: string;
 }
 
+export type Dns = {
+  name: string;
+  config: any;
+  rule: any;
+  tag: string;
+}
+
 export type Access = {
   user: string;
   class: string;
