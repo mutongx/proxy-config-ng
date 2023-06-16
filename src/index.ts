@@ -93,6 +93,7 @@ export default {
       const addr = await worker.getHostAddr(proxy.host);
       await this.fillConfig(worker, config, {
         ...userConfig,
+        ...proxy.config,
         "server": addr,
         "server_port": proxy.port,
       });
