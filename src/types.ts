@@ -14,7 +14,7 @@ export type User = {
 
 export type Host = {
   name: string;
-  addr4: string;
+  addr: string;
   addr6: string;
 };
 

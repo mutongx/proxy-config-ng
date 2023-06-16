@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS host (name TEXT, addr4 TEXT, addr6 TEXT);
+CREATE TABLE IF NOT EXISTS host (name TEXT, addr TEXT, addr6 TEXT);
 CREATE TABLE IF NOT EXISTS user (name TEXT, token TEXT, config JSON);
 CREATE TABLE IF NOT EXISTS proxy (host TEXT, port INTEGER, type TEXT, config JSON, tag TEXT, priority INTEGER);
 CREATE TABLE IF NOT EXISTS rule (type TEXT, config JSON, tag TEXT, priority INTEGER);

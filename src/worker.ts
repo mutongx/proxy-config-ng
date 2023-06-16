@@ -99,7 +99,7 @@ export default class {
       }
     }
     const host = this.hostCache.get(name);
-    return host ? host.addr4 : null;
+    return host ? host.addr : null;
   }
 
   async getSecret(name: string) {
