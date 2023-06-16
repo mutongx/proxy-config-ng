@@ -123,6 +123,7 @@ export class SingboxConfigurator implements Configurator {
           "external_controller": userConfig.external_controller,
           "external_ui": "ui",
           "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
+          "secret": userConfig.external_controller_secret || "",
           "store_selected": true
         }
       }
