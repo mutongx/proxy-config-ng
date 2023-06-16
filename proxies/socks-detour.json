@@ -1,0 +1,6 @@
+{
+  "type": "socks",
+  "server": { "$ref": "args:/server" },
+  "server_port": { "$ref": "args:/server_port" },
+  "detour": { "$ref": "args:/detour" }
+}
