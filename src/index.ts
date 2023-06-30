@@ -1,11 +1,11 @@
 import { ClashConfigurator, Configurator, SingboxConfigurator } from "./config";
 import { Env, Outbound } from "./types";
-import Worker from "./db"
+import Database from "./db"
 import * as pointer from "json-pointer";
 
 export default {
 
-  async fillConfig(worker: Worker, obj: any, args: object) {
+  async fillConfig(db: Database, obj: any, args: object) {
     if (obj === null) {
       return;
     }
@@ -29,12 +29,12 @@ export default {
           }
           obj[key] = newValue;
         } else if (url.protocol == "secrets:") {
-          obj[key] = await worker.getSecret(url.pathname);
+          obj[key] = await db.getSecret(url.pathname);
         } else {
           throw new Error(`unsupported ref: ${value.$ref}`);
         }
       } else {
-        await this.fillConfig(worker, value, args);
+        await this.fillConfig(db, value, args);
       }
     }
   },
@@ -66,9 +66,9 @@ export default {
     }
 
     const token = paths[1];
-    const worker = new Worker(env);
+    const db = new Database(env);
 
-    const user = await worker.getUser(token);
+    const user = await db.getUser(token);
     if (!user) {
       return new Response("not found", { status: 404 });
     }
@@ -84,14 +84,14 @@ export default {
       })),
     };
 
-    const [proxies, rules, dns] = await Promise.all([worker.getProxies(user), worker.getRules(user), worker.getDns(user)]);
-    const proxiesConfig = await worker.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
+    const [proxies, rules, dns] = await Promise.all([db.getProxies(user), db.getRules(user), db.getDns(user)]);
+    const proxiesConfig = await db.getProxiesConfig([... new Set(proxies.map((val) => val.type))]);
 
     var outboundsConfig: Outbound[] = []
     for (const proxy of proxies) {
       const config = structuredClone(proxiesConfig.get(proxy.type));
-      const addr = await worker.getHostAddr(proxy.host);
-      await this.fillConfig(worker, config, {
+      const addr = await db.getHostAddr(proxy.host);
+      await this.fillConfig(db, config, {
         ...userConfig,
         ...proxy.config,
         "server": addr,
