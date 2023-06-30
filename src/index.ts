@@ -1,6 +1,6 @@
 import { ClashConfigurator, Configurator, SingboxConfigurator } from "./config";
 import { Env, Outbound } from "./types";
-import Worker from "./worker"
+import Worker from "./db"
 import * as pointer from "json-pointer";
 
 export default {
