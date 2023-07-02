@@ -111,7 +111,8 @@ export class SingboxConfigurator implements Configurator {
       result["inbounds"].push({
         "type": "tun",
         "tag": "tun",
-        "inet4_address": "172.19.0.1/30",
+        "inet4_address": "172.27.0.1/30",
+        "inet6_address": "fdfe:6880:67e0::1/126",
         "auto_route": true,
         "strict_route": true,
         "sniff": true,
