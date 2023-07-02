@@ -39,38 +39,31 @@ export default {
     }
   },
 
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async processGetProxyConfig(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
     const url = new URL(request.url);
     const paths = url.pathname.split("/");
     if (paths.length != 3) {
-      return new Response("bad request", { status: 400 });
-    }
-
-    var format: string | null = url.searchParams.get("format");
-    if (!format) {
-      const filename = paths[2];
-      if (filename == "config.json") {
-        format = "sing-box";
-      } else if (filename == "config.yaml") {
-        format = "clash";
-      }
-    }
-
-    var configurator: Configurator;
-    if (format == "sing-box") {
-      configurator = new SingboxConfigurator();
-    } else if (format == "clash") {
-      configurator = new ClashConfigurator();
-    } else {
-      return new Response("bad request", { status: 400 });
+      return null;
     }
 
     const token = paths[1];
     const db = new Database(env);
-
     const user = await db.getUser(token);
     if (!user) {
-      return new Response("not found", { status: 404 });
+      return null;
+    }
+
+    var format: string | null = url.searchParams.get("format")
+    if (!format) {
+      const filename = paths[2];
+      if (filename == "config.yaml") {
+        format = "clash";
+      } else {
+        format = "sing-box";
+      }
+    }
+    if (format != "sing-box" && format != "clash") {
+      format = "sing-box";
     }
 
     const userConfig = {
@@ -105,6 +98,24 @@ export default {
       });
     }
 
+    var configurator: Configurator;
+    if (format == "sing-box") {
+      configurator = new SingboxConfigurator();
+    } else if (format == "clash") {
+      configurator = new ClashConfigurator();
+    } else {
+      throw new Error("should never reach this");
+    }
+
     return new Response(JSON.stringify(configurator.create(userConfig, outboundsConfig, rules, dns), null, 2));
+  },
+
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    let resp: Response | null = null;
+    resp = await this.processGetProxyConfig(request, env, ctx);
+    if (!resp) {
+      resp = new Response("not found", { status: 404 });
+    }
+    return resp;
   },
 };
