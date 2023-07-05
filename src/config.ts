@@ -132,8 +132,8 @@ export class ClashConfigurator {
 
   generator = new ProxyNameGenerator();
 
-  converter: { [key: string]: (o: Outbound) => any } = {
-    trojan: (o: Outbound) => {
+  converter: { [key: string]: (o: Outbound, u: any) => any } = {
+    trojan: (o: Outbound, u: any) => {
       const name = this.generator.push(o.host, o.type);
       return {
         "name": name,
@@ -145,15 +145,49 @@ export class ClashConfigurator {
         "skip-cert-verify":
           (o.config.tls.certificate || o.config.tls.insecure) ? true : false,
       }
+    },
+    vless: (o: Outbound, u: any) => {
+      if (u.clash_compatibility != "meta") {
+        return null;
+      }
+      const name = this.generator.push(o.host, o.type);
+      return {
+        "name": name,
+        "type": "vless",
+        "server": o.config.server,
+        "port": o.config.server_port,
+        "uuid": o.config.uuid,
+        "flow": o.config.flow,
+        "skip-cert-verify":
+          (o.config.tls.certificate || o.config.tls.insecure) ? true : false,
+      }
+    },
+    hysteria: (o: Outbound, u: any) => {
+      if (u.clash_compatibility != "meta") {
+        return null;
+      }
+      const name = this.generator.push(o.host, o.type);
+      return {
+        "name": name,
+        "type": "hysteria",
+        "server": o.config.server,
+        "port": o.config.server_port,
+        "auth-str": o.config.auth_str,
+        "up": o.config.up,
+        "down": o.config.down,
+        "alpn": o.config.tls.alpn,
+        "skip-cert-verify":
+          (o.config.tls.certificate || o.config.tls.insecure) ? true : false,
+      }
     }
   }
 
-  convert(o: Outbound) {
+  convert(o: Outbound, u: any) {
     const fn = this.converter[o.config.type];
     if (fn === undefined) {
       return null;
     }
-    return fn(o);
+    return fn(o, u);
   }
 
   *iterate(obj: any) {
@@ -189,7 +223,7 @@ export class ClashConfigurator {
 
   create(userConfig: any, outboundsConfig: Outbound[], rules: Rule[]) {
     const proxies = outboundsConfig
-      .map((o) => this.convert(o))
+      .map((o) => this.convert(o, userConfig))
       .filter((value) => value != null);
     var result: any = {
       "mixed-port": userConfig.listen_port || 7890,
