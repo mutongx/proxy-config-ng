@@ -1,7 +1,9 @@
-import { ClashConfigurator, Configurator, SingboxConfigurator } from "./config";
+import YAML from "js-yaml";
+import JsonPointer from "json-pointer";
+
+import { ClashConfigurator, SingboxConfigurator } from "./config";
 import { Env, Outbound } from "./types";
 import Database from "./db"
-import * as pointer from "json-pointer";
 
 export default {
 
@@ -23,7 +25,7 @@ export default {
         if (url.protocol == "args:") {
           var newValue;
           try {
-            newValue = pointer.get(args, url.pathname);
+            newValue = JsonPointer.get(args, url.pathname);
           } catch (e) {
             newValue = url.searchParams.get("default");
           }
@@ -98,16 +100,16 @@ export default {
       });
     }
 
-    var configurator: Configurator;
     if (format == "sing-box") {
-      configurator = new SingboxConfigurator();
-    } else if (format == "clash") {
-      configurator = new ClashConfigurator();
-    } else {
-      throw new Error("should never reach this");
+      const conf = new SingboxConfigurator();
+      return new Response(JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2));
+    }
+    if (format == "clash") {
+      const conf = new ClashConfigurator();
+      return new Response(YAML.dump(conf.create(userConfig, outboundsConfig, rules)));
     }
 
-    return new Response(JSON.stringify(configurator.create(userConfig, outboundsConfig, rules, dns), null, 2));
+    throw new Error("should never reach this")
   },
 
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

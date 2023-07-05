@@ -24,11 +24,7 @@ class ProxyNameGenerator {
 
 };
 
-export interface Configurator {
-  create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]): any;
-}
-
-export class SingboxConfigurator implements Configurator {
+export class SingboxConfigurator {
 
   generator = new ProxyNameGenerator();
 
@@ -132,7 +128,7 @@ export class SingboxConfigurator implements Configurator {
   }
 };
 
-export class ClashConfigurator implements Configurator {
+export class ClashConfigurator {
 
   generator = new ProxyNameGenerator();
 
