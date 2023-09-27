@@ -1,6 +1,6 @@
 {
   "name": "proxy-config",
-  "version": "0.0.0",  
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "start": "wrangler dev",
