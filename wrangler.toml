@@ -1,5 +1,5 @@
 name = "router"
-main = "src/index.ts"
+main = "src/_worker.ts"
 compatibility_date = "2023-04-09"
 
 [vars]

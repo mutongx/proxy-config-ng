@@ -1,9 +1,9 @@
 import YAML from "js-yaml";
 import JsonPointer from "json-pointer";
 
-import { ClashConfigurator, SingboxConfigurator } from "./config";
-import { Env, Outbound } from "./types";
-import Database from "./db"
+import { ClashConfigurator, SingboxConfigurator } from "./worker/config";
+import { Env, Outbound } from "./worker/types";
+import Database from "./worker/db"
 
 export default {
 
