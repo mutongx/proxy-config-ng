@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "wrangler pages dev ./dist",
+    "dev": "wrangler pages dev ./dist",
     "deploy": "wrangler pages deploy ./dist",
     "build": "node ./build.mjs"
   },
