@@ -7,6 +7,7 @@ await Promise.all([
         outdir: "dist",
         platform: "node",
         format: "esm",
+        sourcemap: true,
     }),
     esbuild.build({
         entryPoints: ["./src/index.html", "./src/_app.tsx"],
@@ -15,5 +16,6 @@ await Promise.all([
         platform: "browser",
         loader: {".html": "copy"},
         format: "iife",
+        sourcemap: true,
     })
 ])
