@@ -102,7 +102,10 @@ export default {
 
     if (format == "sing-box") {
       const conf = new SingboxConfigurator();
-      return new Response(JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2));
+      return new Response(
+        `// url = "${request.url}"\n` + 
+        `// user = "${user.name}"\n` + 
+        JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2));
     }
     if (format == "clash") {
       const conf = new ClashConfigurator();
