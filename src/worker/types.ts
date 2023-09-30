@@ -1,5 +1,4 @@
 export interface Env {
-  SECRETS: KVNamespace;
   DB: D1Database;
   GITHUB_REPO: string;
   GITHUB_REF: string;
