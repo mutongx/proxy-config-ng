@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "build": "esbuild ./src/index.ts --bundle --outdir=dist --platform=node --format=esm"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
