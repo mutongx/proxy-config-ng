@@ -100,16 +100,34 @@ export default {
       });
     }
 
+    const download = url.searchParams.get("download") !== "false";
     if (format == "sing-box") {
       const conf = new SingboxConfigurator();
       return new Response(
         `// url = "${request.url}"\n` + 
         `// user = "${user.name}"\n` + 
-        JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2));
+        JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Content-Disposition": `${download ? "attachment" : "inline"}; filename="config.json"`,
+          }
+        },
+      );
     }
     if (format == "clash") {
       const conf = new ClashConfigurator();
-      return new Response(YAML.dump(conf.create(userConfig, outboundsConfig, rules)));
+      return new Response(
+        `# url = "${request.url}"\n` + 
+        `# user = "${user.name}"\n` + 
+        YAML.dump(conf.create(userConfig, outboundsConfig, rules)),
+        {
+          headers: {
+            "Content-Type": "application/x-yaml",
+            "Content-Disposition": `${download ? "attachment" : "inline"}; filename="config.yaml"`,
+          }
+        },
+      );
     }
 
     throw new Error("should never reach this")
