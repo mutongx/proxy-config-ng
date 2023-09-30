@@ -41,6 +41,16 @@ export default {
     }
   },
 
+  async processGetAssets(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
+    const url = new URL(request.url);
+    const paths = url.pathname.split("/");
+    const filename = paths[paths.length - 1];
+    if (filename === "" || filename === "index.html" || filename === "_app.js") {
+      return env.ASSETS.fetch(request);
+    }
+    return null;
+  },
+
   async processGetProxyConfig(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
     const url = new URL(request.url);
     const paths = url.pathname.split("/");
@@ -136,10 +146,14 @@ export default {
 
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     let resp: Response | null = null;
-    resp = await this.processGetProxyConfig(request, env, ctx);
-    if (!resp) {
-      resp = new Response("not found", { status: 404 });
+    resp = await this.processGetAssets(request, env, ctx);
+    if (resp) {
+      return resp;
     }
-    return resp;
+    resp = await this.processGetProxyConfig(request, env, ctx);
+    if (resp) {
+      return resp;
+    }
+    return new Response("not found", { status: 404 });
   },
 };
