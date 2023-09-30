@@ -54,5 +54,6 @@ export type Outbound = {
   host: string;
   port: number;
   type: string;
+  groups: Array<string>;
   config: any;
 };

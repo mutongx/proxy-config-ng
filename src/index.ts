@@ -96,6 +96,7 @@ export default {
         host: proxy.host,
         port: proxy.port,
         type: proxy.type,
+        groups: proxy.config?.groups || [],
         config: config,
       });
     }

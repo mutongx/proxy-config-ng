@@ -1,24 +1,35 @@
 import { Outbound, Rule, Dns } from "./types";
 
-class ProxyNameGenerator {
+class ProxyMapper {
 
   counter: Map<string, number> = new Map();
   proxies: string[] = [];
   hosts: Map<string, string[]> = new Map();
+  groups: Map<string, string[]> = new Map();
 
-  push(host: string, type: string): string {
+  push(host: string, type: string, groups: Array<string>): string {
+    // group by ${host-type}, and add to counter
     const key = `${host}-${type}`
     if (!this.counter.has(key)) {
       this.counter.set(key, 0);
     }
     const count = this.counter.get(key)!;
     this.counter.set(key, count + 1);
+    // proxy name is ${host-type-count}
     const name = `${key}-${count}`;
     this.proxies.push(name);
+    // default group by ${host-type}
     if (!this.hosts.has(host)) {
       this.hosts.set(host, []);
     }
     this.hosts.get(host)?.push(name);
+    // custom group name
+    for (const group of groups) {
+      if (!this.groups.has(group)) {
+        this.groups.set(group, []);
+      }
+      this.groups.get(group)?.push(name);
+    }
     return name;
   }
 
@@ -26,16 +37,16 @@ class ProxyNameGenerator {
 
 export class SingboxConfigurator {
 
-  generator = new ProxyNameGenerator();
+  mapper = new ProxyMapper();
 
-  addTag(o: Outbound) {
-    const tag = this.generator.push(o.host, o.type);
+  addProxy(o: Outbound) {
+    const tag = this.mapper.push(o.host, o.type, o.groups);
     o.config.tag = tag;
     return o;
   }
 
   create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]) {
-    const outbounds = outboundsConfig.map((o) => this.addTag(o)).map((o) => o.config);
+    const outbounds = outboundsConfig.map((o) => this.addProxy(o)).map((o) => o.config);
     var result: any = {
       "log": {
         "level": userConfig.log_level || "info",
@@ -67,9 +78,14 @@ export class SingboxConfigurator {
         {
           "type": "selector",
           "tag": "proxy",
-          "outbounds": this.generator.proxies,
+          "outbounds": this.mapper.proxies,
         },
-        ...Array.from(this.generator.hosts, ([key, value]) => ({
+        ...Array.from(this.mapper.groups, ([key, value]) => ({
+          "type": "selector",
+          "tag": key,
+          "outbounds": value,
+        })),
+        ...Array.from(this.mapper.hosts, ([key, value]) => ({
           "type": "selector",
           "tag": key,
           "outbounds": value,
@@ -130,11 +146,11 @@ export class SingboxConfigurator {
 
 export class ClashConfigurator {
 
-  generator = new ProxyNameGenerator();
+  mapper = new ProxyMapper();
 
-  converter: { [key: string]: (o: Outbound, u: any) => any } = {
+  processor: { [key: string]: (o: Outbound, u: any) => any } = {
     trojan: (o: Outbound, u: any) => {
-      const name = this.generator.push(o.host, o.type);
+      const name = this.mapper.push(o.host, o.type, o.groups);
       return {
         "name": name,
         "type": "trojan",
@@ -150,7 +166,7 @@ export class ClashConfigurator {
       if (u.clash_compatibility != "meta") {
         return null;
       }
-      const name = this.generator.push(o.host, o.type);
+      const name = this.mapper.push(o.host, o.type, o.groups);
       return {
         "name": name,
         "type": "vless",
@@ -166,7 +182,7 @@ export class ClashConfigurator {
       if (u.clash_compatibility != "meta") {
         return null;
       }
-      const name = this.generator.push(o.host, o.type);
+      const name = this.mapper.push(o.host, o.type, o.groups);
       return {
         "name": name,
         "type": "hysteria",
@@ -182,8 +198,8 @@ export class ClashConfigurator {
     }
   }
 
-  convert(o: Outbound, u: any) {
-    const fn = this.converter[o.config.type];
+  addProxy(o: Outbound, u: any) {
+    const fn = this.processor[o.config.type];
     if (fn === undefined) {
       return null;
     }
@@ -223,7 +239,7 @@ export class ClashConfigurator {
 
   create(userConfig: any, outboundsConfig: Outbound[], rules: Rule[]) {
     const proxies = outboundsConfig
-      .map((o) => this.convert(o, userConfig))
+      .map((o) => this.addProxy(o, userConfig))
       .filter((value) => value != null);
     var result: any = {
       "mixed-port": userConfig.listen_port || 7890,
@@ -235,9 +251,14 @@ export class ClashConfigurator {
         {
           "name": "PROXY",
           "type": "select",
-          "proxies": this.generator.proxies,
+          "proxies": this.mapper.proxies,
         },
-        ...Array.from(this.generator.hosts, ([key, value]) => ({
+        ...Array.from(this.mapper.groups, ([key, value]) => ({
+          "name": key,
+          "type": "select",
+          "proxies": value,
+        })),
+        ...Array.from(this.mapper.hosts, ([key, value]) => ({
           "name": key,
           "type": "select",
           "proxies": value,
