@@ -125,7 +125,7 @@ export class SingboxConfigurator {
         "tag": "tun",
         "inet4_address": "172.27.0.1/30",
         "auto_route": true,
-        "strict_route": true,
+        "strict_route": userConfig.tun_strict_route ? true : false,
         "sniff": true,
       })
     }
