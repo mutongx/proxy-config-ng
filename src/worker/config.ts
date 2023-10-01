@@ -221,9 +221,6 @@ export class ClashConfigurator {
 
   *translate(rules: Rule[]) {
     for (const rule of rules) {
-      if (rule.type != "proxy") {
-        continue;
-      }
       var outbound: string = rule.config.outbound;
       if (outbound == "proxy" || outbound == "direct") {
         outbound = outbound.toUpperCase();

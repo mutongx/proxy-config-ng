@@ -26,7 +26,7 @@ export type Proxy = {
 };
 
 export type Rule = {
-  type: string;
+  name: string;
   config: any;
   tag: string;
 }

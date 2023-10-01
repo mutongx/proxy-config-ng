@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS host (name TEXT, addr TEXT, addr6 TEXT);
 CREATE TABLE IF NOT EXISTS user (name TEXT, token TEXT, config JSON);
 CREATE TABLE IF NOT EXISTS proxy (host TEXT, port INTEGER, type TEXT, config JSON, tag TEXT, priority INTEGER);
-CREATE TABLE IF NOT EXISTS rule (type TEXT, config JSON, tag TEXT, priority INTEGER);
+CREATE TABLE IF NOT EXISTS rule (name TEXT, config JSON, tag TEXT, priority INTEGER);
 CREATE TABLE IF NOT EXISTS dns (name TEXT, config JSON, rule JSON, tag TEXT, priority INTEGER);
 CREATE TABLE IF NOT EXISTS access (user TEXT, class TEXT, tag TEXT);
 CREATE TABLE IF NOT EXISTS secret (name TEXT, value TEXT);
