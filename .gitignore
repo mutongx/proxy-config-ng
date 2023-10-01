@@ -1,6 +1,7 @@
-node_modules/
-dist/
 .dev.vars
-.yarn/
 .pnp.*
+.yarn/
+.vscode/
 .wrangler/
+dist/
+node_modules/
