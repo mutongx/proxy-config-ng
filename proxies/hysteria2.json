@@ -1,0 +1,12 @@
+{
+  "type": "hysteria2",
+  "server": { "$ref": "args:/server" },
+  "server_port": { "$ref": "args:/server_port" },
+  "password": { "$ref": "secrets:hysteria2_password" },
+  "tls": {
+    "enabled": true,
+    "server_name": "127.0.0.1",
+    "alpn": [ "h3" ],
+    "certificate": { "$ref": "secrets:server_certificate" }
+  }
+}
