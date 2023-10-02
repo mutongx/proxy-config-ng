@@ -104,6 +104,12 @@ export class SingboxConfigurator {
         },
       ],
       "route": {
+        "geoip": {
+          "download_url": "https://github.com/soffchen/sing-geoip/releases/download/202310020014/geoip.db"
+        },
+        "geosite": {
+          "download_url": "https://github.com/soffchen/sing-geosite/releases/download/202310012207/geosite.db"
+        },
         "rules": [
           {
             "protocol": "dns",
