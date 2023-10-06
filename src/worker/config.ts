@@ -154,6 +154,25 @@ export class ClashConfigurator {
 
   mapper = new ProxyMapper();
 
+  getTlsConfig(o: Outbound, u: any) {
+    let result: any = {}
+    if (o.config.tls) {
+      if (o.config.tls.insecure) {
+        result["skip-cert-verify"] = true
+      } else if (o.config.tls.certificate) {
+        if (u.clash_compatibility === "meta") {
+          result["ca-str"] = o.config.tls.certificate;
+        } else {
+          result["skip-cert-verify"] = true;
+        }
+      }
+      if (o.config.tls.alpn) {
+        result["alpn"] = o.config.tls.alpn
+      }
+    }
+    return result;
+  }
+
   processor: { [key: string]: (o: Outbound, u: any) => any } = {
     trojan: (o: Outbound, u: any) => {
       const name = this.mapper.push(o.host, o.type, o.groups);
@@ -163,9 +182,7 @@ export class ClashConfigurator {
         "server": o.config.server,
         "port": o.config.server_port,
         "password": o.config.password,
-        "alpn": o.config.tls.alpn,
-        "skip-cert-verify":
-          (o.config.tls.certificate || o.config.tls.insecure) ? true : false,
+        ...this.getTlsConfig(o, u),
       }
     },
     vless: (o: Outbound, u: any) => {
@@ -180,26 +197,21 @@ export class ClashConfigurator {
         "port": o.config.server_port,
         "uuid": o.config.uuid,
         "flow": o.config.flow,
-        "skip-cert-verify":
-          (o.config.tls.certificate || o.config.tls.insecure) ? true : false,
+        ...this.getTlsConfig(o, u),
       }
     },
-    hysteria: (o: Outbound, u: any) => {
+    hysteria2: (o: Outbound, u: any) => {
       if (u.clash_compatibility != "meta") {
         return null;
       }
       const name = this.mapper.push(o.host, o.type, o.groups);
       return {
         "name": name,
-        "type": "hysteria",
+        "type": "hysteria2",
         "server": o.config.server,
         "port": o.config.server_port,
-        "auth-str": o.config.auth_str,
-        "up": o.config.up,
-        "down": o.config.down,
-        "alpn": o.config.tls.alpn,
-        "skip-cert-verify":
-          (o.config.tls.certificate || o.config.tls.insecure) ? true : false,
+        "password": o.config.password,
+        ...this.getTlsConfig(o, u),
       }
     }
   }
