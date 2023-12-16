@@ -156,6 +156,14 @@ export class SingboxConfigurator {
       }
       result["inbounds"].push(tunConfig)
     }
+    if (userConfig.enable_tproxy) {
+      result["inbounds"].push(    {
+        "type": "tproxy",
+        "listen": "0.0.0.0",
+        "listen_port": userConfig.tproxy_listen_port || 5356,
+        "sniff": true,
+      })
+    }
     if (userConfig.enable_fakeip) {
       result["dns"]["servers"].push({
         "address": "fakeip",
