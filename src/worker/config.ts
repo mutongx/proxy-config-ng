@@ -45,6 +45,13 @@ export class SingboxConfigurator {
     return o;
   }
 
+  ensureArray(s: Array<string> | string) {
+    if (!Array.isArray(s)) {
+      return s.split(",");
+    }
+    return s;
+  }
+
   create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]) {
     const outbounds = outboundsConfig.map((o) => this.addProxy(o)).map((o) => o.config);
     var result: any = {
@@ -127,14 +134,27 @@ export class SingboxConfigurator {
       }
     }
     if (userConfig.enable_tun) {
-      result["inbounds"].push({
+      const tunConfig: any = {
         "type": "tun",
         "tag": "tun",
         "inet4_address": "172.27.0.1/30",
         "auto_route": true,
         "strict_route": userConfig.tun_strict_route ? true : false,
         "sniff": true,
-      })
+      }
+      if (userConfig.tun_inet4_route_address) {
+        tunConfig["inet4_route_address"] = this.ensureArray(userConfig.tun_inet4_route_address);
+      }
+      if (userConfig.tun_inet6_route_address) {
+        tunConfig["inet6_route_address"] = this.ensureArray(userConfig.tun_inet6_route_address);
+      }
+      if (userConfig.tun_inet4_route_exclude_address) {
+        tunConfig["inet4_route_exclude_address"] = this.ensureArray(userConfig.tun_inet4_route_exclude_address);
+      }
+      if (userConfig.tun_inet6_route_exclude_address) {
+        tunConfig["inet6_route_exclude_address"] = this.ensureArray(userConfig.tun_inet6_route_exclude_address);
+      }
+      result["inbounds"].push(tunConfig)
     }
     if (userConfig.enable_fakeip) {
       result["dns"]["servers"].push({
