@@ -63,7 +63,8 @@ export class SingboxConfigurator {
             ...s.rule,
             "server": s.name,
           })).filter((s) => s !== null),
-        ]
+        ],
+        "independent_cache": true,
       },
       "inbounds": [
         {
@@ -134,6 +135,21 @@ export class SingboxConfigurator {
         "strict_route": userConfig.tun_strict_route ? true : false,
         "sniff": true,
       })
+    }
+    if (userConfig.enable_fakeip) {
+      result["dns"]["servers"].push({
+        "address": "fakeip",
+        "tag": "fakeip",
+      })
+      result["dns"]["rules"].push({
+        "query_type": ["A", "AAAA"],
+        "server": "fakeip",
+      })
+      result["dns"]["fakeip"] = {
+        "enabled": true,
+        "inet4_range": "198.18.0.0/15",
+        "inet6_range": "fc00::/18",
+      }
     }
     if (userConfig.external_controller) {
       result["experimental"] = {
