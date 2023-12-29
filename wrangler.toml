@@ -1,6 +1,6 @@
 name = "router"
 main = "src/_worker.ts"
-compatibility_date = "2023-04-09"
+compatibility_date = "2023-09-30"
 
 [vars]
 GITHUB_REPO = "mutongx/proxy-config-ng"
