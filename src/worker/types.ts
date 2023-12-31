@@ -1,6 +1,6 @@
 export interface Env {
   DB: D1Database;
-  ASSETS: { fetch: typeof fetch };
+  ASSETS: { fetch: typeof fetch } | undefined;
   GITHUB_REPO: string;
   GITHUB_REF: string;
   GITHUB_TOKEN: string;

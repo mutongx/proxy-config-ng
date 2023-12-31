@@ -46,6 +46,9 @@ export default {
     const paths = url.pathname.split("/");
     const filename = paths[paths.length - 1];
     if (filename === "" || filename === "index.html" || filename === "_app.js") {
+      if (!env.ASSETS) {
+        return new Response("cannot load assets", { status: 501 });
+      }
       return env.ASSETS.fetch(request);
     }
     return null;
