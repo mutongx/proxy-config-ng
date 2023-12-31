@@ -43,9 +43,11 @@ export default {
 
   async processGetAssets(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
     const url = new URL(request.url);
-    const paths = url.pathname.split("/");
-    const filename = paths[paths.length - 1];
-    if (filename === "" || filename === "index.html" || filename === "_app.js") {
+    const path = url.pathname;
+    if (request.method != "GET") {
+      return null;
+    }
+    if (path === "/" || path === "/index.html" || path === "/_app.js") {
       if (!env.ASSETS) {
         return new Response("cannot load assets", { status: 501 });
       }
