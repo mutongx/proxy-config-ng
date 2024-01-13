@@ -7,6 +7,10 @@
     "enabled": true,
     "server_name": "127.0.0.1",
     "alpn": [ "h2" ],
-    "certificate": { "$ref": "secrets:server_certificate" }
+    "certificate": { "$ref": "secrets:server_certificate" },
+    "utls": {
+      "enabled": true,
+      "fingerprint": "firefox"
+    }
   }
 }
