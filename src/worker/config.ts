@@ -186,7 +186,13 @@ export class SingboxConfigurator {
           "external_ui": "ui",
           "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
           "secret": userConfig.external_controller_secret || "",
-        }
+        },
+        "cache_file": {
+          "enabled": true,
+          "path": userConfig.cache_file_path || "cache.db",
+          "cache_id": userConfig.cache_id || "",
+          "store_fakeip": true,
+        },
       }
     }
     return result;
