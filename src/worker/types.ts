@@ -1,61 +1,61 @@
 export interface Env {
-  DB: D1Database;
-  ASSETS: { fetch: typeof fetch } | undefined;
-  GITHUB_REPO: string;
-  GITHUB_REF: string;
-  GITHUB_TOKEN: string;
-  WEBAUTHN_REGISTRATION_TOKEN: string;
-  WEBAUTHN_ORIGIN: string;
+    DB: D1Database;
+    ASSETS: { fetch: typeof fetch } | undefined;
+    GITHUB_REPO: string;
+    GITHUB_REF: string;
+    GITHUB_TOKEN: string;
+    WEBAUTHN_REGISTRATION_TOKEN: string;
+    WEBAUTHN_ORIGIN: string;
 };
 
 export type User = {
-  name: string;
-  token: string;
-  config: any;
+    name: string;
+    token: string;
+    config: any;
 };
 
 export type Host = {
-  name: string;
-  addr: string;
-  addr6: string;
+    name: string;
+    addr: string;
+    addr6: string;
 };
 
 export type Proxy = {
-  host: string;
-  port: number;
-  type: string;
-  config: any;
-  tag: string;
+    host: string;
+    port: number;
+    type: string;
+    config: any;
+    tag: string;
 };
 
 export type Rule = {
-  name: string;
-  config: any;
-  tag: string;
-}
+    name: string;
+    config: any;
+    tag: string;
+};
 
 export type Dns = {
-  name: string;
-  config: any;
-  rule: any;
-  tag: string;
-}
+    name: string;
+    config: any;
+    rule: any;
+    tag: string;
+};
 
 export type Access = {
-  user: string;
-  class: string;
-  tag: string;
+    user: string;
+    class: string;
+    tag: string;
 };
 
 export type Secret = {
-  name: string;
-  value: string;
+    name: string;
+    value: string;
 };
 
 export type Outbound = {
-  host: string;
-  port: number;
-  type: string;
-  groups: Array<string>;
-  config: any;
+    host: string;
+    port: number;
+    type: string;
+    groups: Array<string>;
+    config: any;
 };
