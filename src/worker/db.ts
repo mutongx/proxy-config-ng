@@ -14,9 +14,9 @@ export default class {
         const stmt = this.env.DB.prepare("SELECT * FROM user WHERE token = ?1").bind(token);
         const user = await stmt.first();
         if (user?.config) {
-            user.config = JSON.parse(user.config);
+            user.config = JSON.parse(user.config as string);
         }
-        return user;
+        return user ? user as User : null;
     }
 
     async getAccesses(user: User): Promise<Array<Access>> {
