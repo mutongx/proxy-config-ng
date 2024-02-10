@@ -65,29 +65,6 @@ export default class {
         return dns;
     }
 
-    async getProxiesConfig(proxyTypes: Array<string>): Promise<Map<string, object>> {
-        var result: Map<string, object> = new Map();
-        const fetches = proxyTypes.map((type) => fetch(
-      `https://api.github.com/repos/${this.env.GITHUB_REPO}/contents/proxies/${type}.json?ref=${this.env.GITHUB_REF}`,
-      {
-          headers: {
-              "Accept": "application/vnd.github.raw",
-              "User-Agent": "Mutong's Cloudflare Workers",
-              "Authorization": `Bearer ${this.env.GITHUB_TOKEN}`,
-          },
-      }).then((resp) => {
-            if (!resp.ok) {
-                throw new Error(`failed to request proxy config: ${resp.status} ${resp.statusText}`);
-            }
-            return resp.json();
-        }));
-        (await Promise.all(fetches)).map((content: any, idx) => {
-            const type = proxyTypes[idx];
-            result.set(type, content);
-        });
-        return result;
-    }
-
     async getHostAddr(name: string) {
         if (!this.hostCache) {
             const stmt = this.env.DB.prepare("SELECT * FROM host");

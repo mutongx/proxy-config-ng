@@ -180,8 +180,23 @@ export default {
         };
 
         const [proxies, rules, dns] = await Promise.all([db.getProxies(user), db.getRules(user), db.getDns(user)]);
-        const proxiesConfig = await db.getProxiesConfig([...new Set(proxies.map((val) => val.type))]);
-
+        const proxiesConfig: Map<string, object> = new Map(await Promise.all([...new Set(proxies.map((val) => val.type))].map(
+            (type) => {
+                return fetch(
+                    `https://api.github.com/repos/${env.GITHUB_REPO}/contents/proxies/${type}.json?ref=${env.GITHUB_REF}`,
+                    {
+                        headers: {
+                            "Accept": "application/vnd.github.raw",
+                            "User-Agent": "Mutong's Cloudflare Workers",
+                            "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+                        },
+                    },
+                ).then((resp) => {
+                    return resp.json().then((value) => [type, value] as [string, object]);
+                });
+            }
+        )));
+    
         var outboundsConfig: Outbound[] = [];
         for (const proxy of proxies) {
             const config = structuredClone(proxiesConfig.get(proxy.type));
