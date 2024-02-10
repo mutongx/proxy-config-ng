@@ -114,4 +114,34 @@ export default class {
     return this.secretCache.get(name) || null;
   }
 
+  async newChallenge(value: string, usage: string, timestamp: number) {
+    const stmt = this.env.DB.prepare("INSERT INTO challenge VALUES (?1, ?2, ?3)").bind(value, usage, timestamp);
+    const result = await stmt.run();
+    return result.success;
+  }
+
+  async consumeChallenge(value: string, usage: string, timestamp_after: number) {
+    const stmt = this.env.DB.prepare("DELETE FROM challenge WHERE value = ?1 AND usage = ?2 AND timestamp > ?3").bind(value, usage, timestamp_after);
+    const result = await stmt.run();
+    return result.meta.changes == 1;
+  }
+
+  async newCredential(id: string, key: string, algorithm: string, name: string, timestamp: number) {
+    const stmt = this.env.DB.prepare("INSERT INTO credential VALUES (?1, ?2, ?3, ?4, ?5)").bind(id, key, algorithm, name, timestamp);
+    const result = await stmt.run();
+    return result.success;
+  }
+
+  async getCredential(id: string) {
+    const stmt = this.env.DB.prepare("SELECT * FROM credential WHERE id = ?1").bind(id);
+    const result = await stmt.first();
+    return result;
+  }
+
+  async newAuthentication(id: string, counter: number, timestamp: number) {
+    const stmt = this.env.DB.prepare("INSERT INTO authentication VALUES (?1, ?2, ?3)").bind(id, counter, timestamp);
+    const result = await stmt.run();
+    return result.success;
+  }
+
 }

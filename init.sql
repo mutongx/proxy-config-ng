@@ -18,3 +18,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS constraint__secret__name ON secret (name);
 CREATE INDEX IF NOT EXISTS index__proxy__tag__priority ON proxy (tag, priority);
 CREATE INDEX IF NOT EXISTS index__rule__tag__priority ON rule (tag, priority);
 CREATE INDEX IF NOT EXISTS index__dns__tag__priority ON dns (tag, priority);
+
+CREATE TABLE IF NOT EXISTS challenge (value TEXT, usage TEXT, timestamp INTEGER);
+CREATE TABLE IF NOT EXISTS credential (id TEXT, key TEXT, algorithm TEXT, name TEXT, timestamp INTEGER);
+CREATE TABLE IF NOT EXISTS authentication (id TEXT, counter INTEGER, timestamp INTEGER);
+
+CREATE UNIQUE INDEX IF NOT EXISTS constraint__challenge__value ON challenge (value);
+CREATE UNIQUE INDEX IF NOT EXISTS constraint__credential__id ON credential (id);
+
+CREATE INDEX IF NOT EXISTS index__challenge__usage ON challenge (usage);

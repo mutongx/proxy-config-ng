@@ -1,5 +1,6 @@
 import YAML from "js-yaml";
 import JsonPointer from "json-pointer";
+import WebAuthn from "@passwordless-id/webauthn";
 
 import { ClashConfigurator, SingboxConfigurator } from "./worker/config";
 import { Env, Outbound } from "./worker/types";
@@ -56,7 +57,91 @@ export default {
     return null;
   },
 
-  async processGetProxyConfig(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
+  async processProcessAuthn(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
+    function now() {
+      return Math.trunc(Date.now() / 1000);
+    }
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (request.method != "POST") {
+      return null;
+    }
+    const db = new Database(env);
+    if (path === "/challenge") {
+      const usage = url.searchParams.get("usage");
+      if (usage != "register" && usage != "authenticate") {
+        return new Response("bad request", { status: 400 });
+      }
+      const challenge = crypto.randomUUID();
+      const ok = await db.newChallenge(challenge, usage, now());
+      if (!ok) {
+        return new Response("internal server error", { status: 500 });
+      }
+      return new Response(JSON.stringify({ value: challenge }));
+    }
+    if (path === "/register") {
+      const token = url.searchParams.get("token");
+      if (!token || token != env.WEBAUTHN_REGISTRATION_TOKEN) {
+        return new Response("forbidden", { status: 403 });
+      }
+      const body = await request.json() as any;
+      try {
+        const registration = await WebAuthn.server.verifyRegistration(
+          body,
+          {
+            challenge: (value: string) => db.consumeChallenge(value, "register", now() - 300),
+            origin: env.WEBAUTHN_ORIGIN,
+          },
+        );
+        await db.newCredential(
+          registration.credential.id,
+          registration.credential.publicKey,
+          registration.credential.algorithm,
+          registration.authenticator.name,
+          now(),
+        );
+      } catch {
+        return new Response("forbidden", { status: 403 });
+      }
+      return new Response("ok");
+    }
+    if (path === "/authenticate") {
+      const body = await request.json() as any;
+      if (!body.credentialId) {
+        return new Response("bad request", { status: 400 });
+      }
+      const credential = await db.getCredential(body.credentialId) as any;
+      if (!credential) {
+        return new Response("forbidden", { status: 403 });
+      }
+      try {
+        const authentication = await WebAuthn.server.verifyAuthentication(
+          body,
+          {
+            id: credential.id,
+            publicKey: credential.key,
+            algorithm: credential.algorithm,
+          },
+          {
+            challenge: (value: string) => db.consumeChallenge(value, "authenticate", now() - 300),
+            origin: env.WEBAUTHN_ORIGIN,
+            userVerified: true,
+          },
+        );
+        await db.newAuthentication(
+          authentication.credentialId,
+          authentication.authenticator.counter,
+          now(),
+        );
+      } catch {
+        return new Response("forbidden", { status: 403 });
+      }
+      return new Response("ok");
+    }
+    return null;
+  },
+
+  async processGenerateConfig(request: Request, env: Env, ctx: ExecutionContext): Promise<Response | null> {
     const url = new URL(request.url);
     const paths = url.pathname.split("/");
     if (paths.length != 3) {
@@ -120,8 +205,8 @@ export default {
     if (format == "sing-box") {
       const conf = new SingboxConfigurator();
       return new Response(
-        `// url = "${request.url}"\n` + 
-        `// user = "${user.name}"\n` + 
+        `// url = "${request.url}"\n` +
+        `// user = "${user.name}"\n` +
         JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2),
         {
           headers: {
@@ -134,8 +219,8 @@ export default {
     if (format == "clash") {
       const conf = new ClashConfigurator();
       return new Response(
-        `# url = "${request.url}"\n` + 
-        `# user = "${user.name}"\n` + 
+        `# url = "${request.url}"\n` +
+        `# user = "${user.name}"\n` +
         YAML.dump(conf.create(userConfig, outboundsConfig, rules)),
         {
           headers: {
@@ -155,7 +240,11 @@ export default {
     if (resp) {
       return resp;
     }
-    resp = await this.processGetProxyConfig(request, env, ctx);
+    resp = await this.processProcessAuthn(request, env, ctx);
+    if (resp) {
+      return resp;
+    }
+    resp = await this.processGenerateConfig(request, env, ctx);
     if (resp) {
       return resp;
     }

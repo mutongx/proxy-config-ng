@@ -4,6 +4,8 @@ export interface Env {
   GITHUB_REPO: string;
   GITHUB_REF: string;
   GITHUB_TOKEN: string;
+  WEBAUTHN_REGISTRATION_TOKEN: string;
+  WEBAUTHN_ORIGIN: string;
 };
 
 export type User = {
