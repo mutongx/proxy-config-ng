@@ -2,6 +2,5 @@
   "type": "shadowsocks",
   "server": { "$ref": "args:/server" },
   "server_port": { "$ref": "args:/server_port" },
-  "method": "none",
-  "detour": { "$ref": "args:/detour" }
+  "method": "none"
 }
