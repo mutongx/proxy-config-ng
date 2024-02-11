@@ -220,29 +220,31 @@ export default {
         if (format == "sing-box") {
             const conf = new SingboxConfigurator();
             return new Response(
-        `// url = "${request.url}"\n`
-        + `// user = "${user.name}"\n`
-        + JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2),
-        {
-            headers: {
-                "Content-Type": "application/json",
-                "Content-Disposition": `${download ? "attachment" : "inline"}; filename="config.json"`,
-            },
-        },
+                ""
+                + `// url = "${request.url}"\n`
+                + `// user = "${user.name}"\n`
+                + JSON.stringify(conf.create(userConfig, outboundsConfig, rules, dns), null, 2),
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="config.json"`,
+                    },
+                },
             );
         }
         if (format == "clash") {
             const conf = new ClashConfigurator();
             return new Response(
-        `# url = "${request.url}"\n`
-        + `# user = "${user.name}"\n`
-        + YAML.dump(conf.create(userConfig, outboundsConfig, rules)),
-        {
-            headers: {
-                "Content-Type": "application/x-yaml",
-                "Content-Disposition": `${download ? "attachment" : "inline"}; filename="config.yaml"`,
-            },
-        },
+                ""
+                + `# url = "${request.url}"\n`
+                + `# user = "${user.name}"\n`
+                + YAML.dump(conf.create(userConfig, outboundsConfig, rules)),
+                {
+                    headers: {
+                        "Content-Type": "application/x-yaml",
+                        "Content-Disposition": `${download ? "attachment" : "inline"}; filename="config.yaml"`,
+                    },
+                },
             );
         }
 

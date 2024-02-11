@@ -7,7 +7,7 @@ class ProxyMapper {
     groups: Map<string, string[]> = new Map();
 
     push(host: string, type: string, groups: Array<string>): string {
-    // group by ${host-type}, and add to counter
+        // group by ${host-type}, and add to counter
         const key = `${host}-${type}`;
         if (!this.counter.has(key)) {
             this.counter.set(key, 0);
@@ -263,10 +263,7 @@ export class ClashConfigurator {
 
     addProxy(o: Outbound, u: any) {
         const fn = this.processor[o.config.type];
-        if (fn === undefined) {
-            return null;
-        }
-        return fn(o, u);
+        return fn ? fn(o, u) : null;
     }
 
     *iterate(obj: any) {
