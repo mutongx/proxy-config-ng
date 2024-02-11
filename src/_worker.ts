@@ -192,6 +192,9 @@ export default {
                         },
                     },
                 ).then((resp) => {
+                    if (!resp.ok) {
+                        throw new Error(`invalid proxy type: ${type}`)
+                    }
                     return resp.json().then((value) => [type, value] as [string, object]);
                 });
             }
