@@ -1,73 +1,62 @@
-import { Env } from "./types";
-import { Access, Host, Proxy, Rule, Dns, Secret, User } from "./types";
+import { Access, Host, Proxy, Rule, Dns, Secret, User } from "../types/db";
 
 export default class {
-    env: Env;
+    db: D1Database;
     hostCache: Map<string, Host> | null = null;
     secretCache: Map<string, string> | null = null;
 
-    constructor(env: Env) {
-        this.env = env;
+    constructor(db: D1Database) {
+        this.db = db;
+    }
+
+    cast<T>(obj: Record<string, unknown>, ...fields: string[]): T {
+        const result = structuredClone(obj);
+        for (const field of fields) {
+            if (result[field]) {
+                result[field] = JSON.parse(result[field] as string);
+            } else {
+                result[field] = {};
+            }
+        }
+        return result as T;
     }
 
     async getUser(token: string): Promise<User | null> {
-        const stmt = this.env.DB.prepare("SELECT * FROM user WHERE token = ?1").bind(token);
+        const stmt = this.db.prepare("SELECT * FROM user WHERE token = ?1").bind(token);
         const user = await stmt.first();
-        if (user?.config) {
-            user.config = JSON.parse(user.config as string);
+        if (!user) {
+            return null;
         }
-        return user ? user as User : null;
+        return this.cast<User>(user, "config");
     }
 
     async getAccesses(user: User): Promise<Array<Access>> {
-        const stmt = this.env.DB.prepare("SELECT * FROM access WHERE user = ?1").bind(user.name);
+        const stmt = this.db.prepare("SELECT * FROM access WHERE user = ?1").bind(user.name);
         const result = await stmt.all();
-        const accesses = result.results as Array<Access>;
-        return accesses;
+        return result.results.map((item) => this.cast<Access>(item));
     }
 
     async getProxies(user: User): Promise<Array<Proxy>> {
-        const stmt = this.env.DB.prepare("SELECT * FROM proxy JOIN access WHERE access.class = 'proxy' AND access.tag = proxy.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
+        const stmt = this.db.prepare("SELECT * FROM proxy JOIN access WHERE access.class = 'proxy' AND access.tag = proxy.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
         const result = await stmt.all();
-        const proxies = result.results as Array<Proxy>;
-        for (var proxy of proxies) {
-            if (proxy.config) {
-                proxy.config = JSON.parse(proxy.config);
-            }
-        }
-        return proxies;
+        return result.results.map((item) => this.cast<Proxy>(item, "config"));
     }
 
     async getRules(user: User): Promise<Array<Rule>> {
-        const stmt = this.env.DB.prepare("SELECT * FROM rule JOIN access WHERE access.class = 'rule' AND access.tag = rule.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
+        const stmt = this.db.prepare("SELECT * FROM rule JOIN access WHERE access.class = 'rule' AND access.tag = rule.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
         const result = await stmt.all();
-        const rules = result.results as Array<Rule>;
-        for (var rule of rules) {
-            if (rule.config) {
-                rule.config = JSON.parse(rule.config);
-            }
-        }
-        return rules;
+        return result.results.map((item) => this.cast<Rule>(item, "config"));
     }
 
     async getDns(user: User): Promise<Array<Dns>> {
-        const stmt = this.env.DB.prepare("SELECT * FROM dns JOIN access WHERE access.class = 'dns' AND access.tag = dns.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
+        const stmt = this.db.prepare("SELECT * FROM dns JOIN access WHERE access.class = 'dns' AND access.tag = dns.tag AND access.user = ?1 ORDER BY priority;").bind(user.name);
         const result = await stmt.all();
-        const dns = result.results as Array<Dns>;
-        for (var s of dns) {
-            if (s.config) {
-                s.config = JSON.parse(s.config);
-            }
-            if (s.rule) {
-                s.rule = JSON.parse(s.rule);
-            }
-        }
-        return dns;
+        return result.results.map((item) => this.cast<Dns>(item, "config", "rule"));
     }
 
     async getHostAddr(name: string) {
         if (!this.hostCache) {
-            const stmt = this.env.DB.prepare("SELECT * FROM host");
+            const stmt = this.db.prepare("SELECT * FROM host");
             const result = await stmt.all();
             this.hostCache = new Map();
             for (const host of result.results as Array<Host>) {
@@ -80,7 +69,7 @@ export default class {
 
     async getSecret(name: string) {
         if (!this.secretCache) {
-            const stmt = this.env.DB.prepare("SELECT * FROM secret");
+            const stmt = this.db.prepare("SELECT * FROM secret");
             const result = await stmt.all();
             this.secretCache = new Map();
             for (const secret of result.results as Array<Secret>) {
@@ -91,31 +80,31 @@ export default class {
     }
 
     async newChallenge(value: string, usage: string, timestamp: number) {
-        const stmt = this.env.DB.prepare("INSERT INTO challenge VALUES (?1, ?2, ?3)").bind(value, usage, timestamp);
+        const stmt = this.db.prepare("INSERT INTO challenge VALUES (?1, ?2, ?3)").bind(value, usage, timestamp);
         const result = await stmt.run();
         return result.success;
     }
 
     async consumeChallenge(value: string, usage: string, timestamp_after: number) {
-        const stmt = this.env.DB.prepare("DELETE FROM challenge WHERE value = ?1 AND usage = ?2 AND timestamp > ?3").bind(value, usage, timestamp_after);
-        const result = await stmt.run();
-        return result.meta.changes == 1;
+        const stmt = this.db.prepare("DELETE FROM challenge WHERE value = ?1 AND usage = ?2 AND timestamp > ?3 RETURNING 1").bind(value, usage, timestamp_after);
+        const result = await stmt.first();
+        return result !== null;
     }
 
     async newCredential(id: string, key: string, algorithm: string, name: string, timestamp: number) {
-        const stmt = this.env.DB.prepare("INSERT INTO credential VALUES (?1, ?2, ?3, ?4, ?5)").bind(id, key, algorithm, name, timestamp);
+        const stmt = this.db.prepare("INSERT INTO credential VALUES (?1, ?2, ?3, ?4, ?5)").bind(id, key, algorithm, name, timestamp);
         const result = await stmt.run();
         return result.success;
     }
 
     async getCredential(id: string) {
-        const stmt = this.env.DB.prepare("SELECT * FROM credential WHERE id = ?1").bind(id);
+        const stmt = this.db.prepare("SELECT * FROM credential WHERE id = ?1").bind(id);
         const result = await stmt.first();
         return result;
     }
 
     async newAuthentication(id: string, counter: number, timestamp: number) {
-        const stmt = this.env.DB.prepare("INSERT INTO authentication VALUES (?1, ?2, ?3)").bind(id, counter, timestamp);
+        const stmt = this.db.prepare("INSERT INTO authentication VALUES (?1, ?2, ?3)").bind(id, counter, timestamp);
         const result = await stmt.run();
         return result.success;
     }

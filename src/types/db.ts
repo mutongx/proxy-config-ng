@@ -1,17 +1,9 @@
-export interface Env {
-    DB: D1Database;
-    ASSETS: { fetch: typeof fetch } | undefined;
-    GITHUB_REPO: string;
-    GITHUB_REF: string;
-    GITHUB_TOKEN: string;
-    WEBAUTHN_REGISTRATION_TOKEN: string;
-    WEBAUTHN_ORIGIN: string;
-};
+import { ConfigObject } from "./config";
 
 export type User = {
     name: string;
     token: string;
-    config: any;
+    config: ConfigObject;
 };
 
 export type Host = {
@@ -24,20 +16,20 @@ export type Proxy = {
     host: string;
     port: number;
     type: string;
-    config: any;
+    config: ConfigObject;
     tag: string;
 };
 
 export type Rule = {
     name: string;
-    config: any;
+    config: ConfigObject;
     tag: string;
 };
 
 export type Dns = {
     name: string;
-    config: any;
-    rule: any;
+    config: ConfigObject;
+    rule: ConfigObject;
     tag: string;
 };
 
@@ -50,12 +42,4 @@ export type Access = {
 export type Secret = {
     name: string;
     value: string;
-};
-
-export type Outbound = {
-    host: string;
-    port: number;
-    type: string;
-    groups: Array<string>;
-    config: any;
 };

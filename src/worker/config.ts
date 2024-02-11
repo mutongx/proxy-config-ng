@@ -1,4 +1,5 @@
-import { Outbound, Rule, Dns } from "./types";
+import { Rule, Dns } from "../types/db";
+import { ConfigObject } from "../types/config";
 
 class ProxyMapper {
     counter: Map<string, number> = new Map();
@@ -33,6 +34,14 @@ class ProxyMapper {
     }
 };
 
+export type Outbound = {
+    host: string;
+    port: number;
+    type: string;
+    groups: Array<string>;
+    config: ConfigObject;
+};
+
 export class SingboxConfigurator {
     mapper = new ProxyMapper();
 
@@ -49,7 +58,7 @@ export class SingboxConfigurator {
         return s;
     }
 
-    create(userConfig: any, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]) {
+    create(userConfig: ConfigObject, outboundsConfig: Outbound[], rulesConfig: Rule[], dnsConfig: Dns[]) {
         const outbounds = outboundsConfig.map((o) => this.addProxy(o)).map((o) => o.config);
         var result: any = {
             "log": {
@@ -131,7 +140,7 @@ export class SingboxConfigurator {
             },
         };
         if (userConfig.enable_tun) {
-            const tunConfig: any = {
+            const tunConfig: ConfigObject = {
                 "type": "tun",
                 "tag": "tun",
                 "inet4_address": "172.27.0.1/30",

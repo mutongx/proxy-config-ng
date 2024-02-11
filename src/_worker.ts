@@ -2,31 +2,41 @@ import YAML from "js-yaml";
 import JsonPointer from "json-pointer";
 import WebAuthn from "@passwordless-id/webauthn";
 
-import { ClashConfigurator, SingboxConfigurator } from "./worker/config";
-import { Env, Outbound } from "./worker/types";
+import { Outbound, ClashConfigurator, SingboxConfigurator } from "./worker/config";
+import { ConfigObject, ConfigValue } from "./types/config";
 import Database from "./worker/db";
+
+export interface Env {
+    DB: D1Database;
+    ASSETS: { fetch: typeof fetch } | undefined;
+    GITHUB_REPO: string;
+    GITHUB_REF: string;
+    GITHUB_TOKEN: string;
+    WEBAUTHN_REGISTRATION_TOKEN: string;
+    WEBAUTHN_ORIGIN: string;
+};
 
 export default {
 
-    async fillConfig(db: Database, obj: any, args: object) {
-        if (obj === null) {
-            return;
-        }
-        if (typeof obj !== "object") {
-            return;
-        }
-        if (Array.isArray(obj)) {
-            return;
-        }
-        const keys = Object.keys(obj);
-        for (const key of keys) {
+    async fillConfig(db: Database, obj: ConfigObject, args: object) {
+        for (const key of Object.keys(obj)) {
             const value = obj[key];
+            if (typeof value == "string" || typeof value == "number" || typeof value == "boolean") {
+                continue;
+            }
+            if (value === null) {
+                continue;
+            }
+            if (Array.isArray(value)) {
+                continue;
+            }
             if (value.$ref) {
-                const url = new URL(value.$ref);
+                const ref = value.$ref as string;
+                const url = new URL(ref);
                 if (url.protocol == "args:") {
-                    var newValue;
+                    var newValue: ConfigValue;
                     try {
-                        newValue = JsonPointer.get(args, url.pathname);
+                        newValue = JsonPointer.get(args, url.pathname) as ConfigValue;
                     } catch (e) {
                         newValue = url.searchParams.get("default");
                     }
@@ -34,10 +44,10 @@ export default {
                 } else if (url.protocol == "secrets:") {
                     obj[key] = await db.getSecret(url.pathname);
                 } else {
-                    throw new Error(`unsupported ref: ${value.$ref}`);
+                    throw new Error(`unsupported ref: ${ref}`);
                 }
             } else {
-                await this.fillConfig(db, value, args);
+                await this.fillConfig(db, value as ConfigObject, args);
             }
         }
     },
@@ -66,7 +76,7 @@ export default {
         if (request.method != "POST") {
             return null;
         }
-        const db = new Database(env);
+        const db = new Database(env.DB);
         if (path === "/challenge") {
             const usage = url.searchParams.get("usage");
             if (usage != "register" && usage != "authenticate") {
@@ -84,7 +94,7 @@ export default {
             if (!token || token != env.WEBAUTHN_REGISTRATION_TOKEN) {
                 return new Response("forbidden", { status: 403 });
             }
-            const body = await request.json() as any;
+            const body = await request.json();
             try {
                 const registration = await WebAuthn.server.verifyRegistration(
                     body,
@@ -106,11 +116,11 @@ export default {
             return new Response("ok");
         }
         if (path === "/authenticate") {
-            const body = await request.json() as any;
+            const body = await request.json();
             if (!body.credentialId) {
                 return new Response("bad request", { status: 400 });
             }
-            const credential = await db.getCredential(body.credentialId) as any;
+            const credential = await db.getCredential(body.credentialId as string);
             if (!credential) {
                 return new Response("forbidden", { status: 403 });
             }
@@ -149,7 +159,7 @@ export default {
         }
 
         const token = paths[1];
-        const db = new Database(env);
+        const db = new Database(env.DB);
         const user = await db.getUser(token);
         if (!user) {
             return null;
@@ -193,13 +203,13 @@ export default {
                     },
                 ).then((resp) => {
                     if (!resp.ok) {
-                        throw new Error(`invalid proxy type: ${type}`)
+                        throw new Error(`invalid proxy type: ${type}`);
                     }
                     return resp.json().then((value) => [type, value] as [string, object]);
                 });
-            }
+            },
         )));
-    
+
         var outboundsConfig: Outbound[] = [];
         for (const proxy of proxies) {
             const config = structuredClone(proxiesConfig.get(proxy.type));
@@ -214,7 +224,7 @@ export default {
                 host: proxy.host,
                 port: proxy.port,
                 type: proxy.type,
-                groups: proxy.config?.groups || [],
+                groups: proxy.config.groups || [],
                 config: config,
             });
         }
