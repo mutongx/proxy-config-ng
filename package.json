@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "node ./build.js && wrangler pages dev ./dist",
-    "deploy": "node ./build.js && wrangler pages deploy ./dist",
-    "build": "node ./build.js"
+    "dev": "bun ./build.js && bun x wrangler pages dev ./dist",
+    "deploy": "bun ./build.js && bun x wrangler pages deploy ./dist",
+    "build": "bun ./build.js"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230404.0",
