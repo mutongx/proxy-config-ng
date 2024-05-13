@@ -203,9 +203,12 @@ export default {
                     },
                 ).then((resp) => {
                     if (!resp.ok) {
-                        throw new Error(`invalid proxy type: ${type}`);
+                        throw resp;
                     }
                     return resp.json().then((value) => [type, value] as [string, object]);
+                }).catch(async (resp) => {
+                    const body = await resp.json();
+                    throw new Error(`On fetching proxy config for ${type}: ${body.message}`);
                 });
             },
         )));
@@ -224,8 +227,8 @@ export default {
                 host: proxy.host,
                 port: proxy.port,
                 type: proxy.type,
-                groups: proxy.config.groups || [],
-                config: config,
+                groups: proxy.config?.groups as string[] || [],
+                config: config as ConfigObject,
             });
         }
 
