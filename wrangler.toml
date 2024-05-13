@@ -1,12 +1,24 @@
 name = "router"
-main = "src/_worker.ts"
 compatibility_date = "2023-09-30"
+pages_build_output_dir = "./dist"
 
 [vars]
-GITHUB_REPO = "mutongx/proxy-config-ng"
 GITHUB_REF = "main"
+GITHUB_REPO = "mutongx/proxy-config-ng"
 
 [[d1_databases]]
-binding = "DB"
-database_name = "router"
 database_id = "9d39dcaf-4007-407f-99e1-4ce9afa3e90c"
+binding = "DB"
+database_name = "DB"
+
+[env.production]
+compatibility_date = "2023-09-30"
+
+  [env.production.vars]
+  GITHUB_REF = "main"
+  GITHUB_REPO = "mutongx/proxy-config-ng"
+
+  [[env.production.d1_databases]]
+  database_id = "01ba9542-5f22-47ce-b1d3-d43ab6d88315"
+  binding = "DB"
+  database_name = "DB"
