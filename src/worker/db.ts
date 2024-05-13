@@ -15,7 +15,7 @@ export default class {
             if (result[field]) {
                 result[field] = JSON.parse(result[field] as string);
             } else {
-                result[field] = {};
+                result[field] = null;
             }
         }
         return result as T;
