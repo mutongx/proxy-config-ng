@@ -160,7 +160,7 @@ export class SingBoxConfigBuilder {
       this.config.inbounds.push({
         "type": "tproxy",
         "tag": "tproxy",
-        "listen": orDefault(this.user.config.tproxy_listen, "127.0.0.1"),
+        "listen": orDefault(this.user.config.tproxy_listen, "0.0.0.0"),
         "listen_port": orDefault(this.user.config.tproxy_listen_port, 5356),
         "sniff": true,
       })
