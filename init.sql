@@ -1,29 +1,26 @@
-CREATE TABLE IF NOT EXISTS host (name TEXT, addr TEXT, addr6 TEXT);
-CREATE TABLE IF NOT EXISTS user (name TEXT, token TEXT, config JSON);
-CREATE TABLE IF NOT EXISTS proxy (host TEXT, port INTEGER, type TEXT, config JSON, tag TEXT, priority INTEGER);
-CREATE TABLE IF NOT EXISTS rule (name TEXT, config JSON, tag TEXT, priority INTEGER);
-CREATE TABLE IF NOT EXISTS dns (name TEXT, config JSON, rule JSON, tag TEXT, priority INTEGER);
-CREATE TABLE IF NOT EXISTS access (user TEXT, class TEXT, tag TEXT);
-CREATE TABLE IF NOT EXISTS secret (name TEXT, value TEXT);
+CREATE TABLE user (name TEXT, token TEXT, config JSON);
+CREATE UNIQUE INDEX unique_index__user__name ON user (name);
+CREATE UNIQUE INDEX unique_index__user__token ON user (token);
 
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__host__name ON host (name);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__user__name ON user (name);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__user__token ON user (token);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__proxy__host__port__type ON proxy (host, port, type);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__rule__name ON rule (name);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__dns__name ON dns (name);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__access__user__class__tag ON access (user, class, tag);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__secret__name ON secret (name);
+CREATE TABLE host (name TEXT, addr TEXT, addr6 TEXT);
+CREATE TABLE secret (name TEXT, value TEXT);
+CREATE UNIQUE INDEX unique_index__host__name ON host (name);
+CREATE UNIQUE INDEX unique_index__secret__name ON secret (name);
 
-CREATE INDEX IF NOT EXISTS index__proxy__tag__priority ON proxy (tag, priority);
-CREATE INDEX IF NOT EXISTS index__rule__tag__priority ON rule (tag, priority);
-CREATE INDEX IF NOT EXISTS index__dns__tag__priority ON dns (tag, priority);
+CREATE TABLE proxy (host TEXT, port INTEGER, type TEXT, routes TEXT, label TEXT);
+CREATE TABLE dns (addr TEXT, detour TEXT, label TEXT);
+CREATE UNIQUE INDEX unique_index__proxy__host__port__type ON proxy (host, port, type);
+CREATE UNIQUE INDEX unique_index__dns__addr__detour ON dns (addr, detour);
+CREATE INDEX index__proxy__label ON proxy (label);
+CREATE INDEX index__dns__label ON dns (label);
 
-CREATE TABLE IF NOT EXISTS challenge (value TEXT, usage TEXT, timestamp INTEGER);
-CREATE TABLE IF NOT EXISTS credential (id TEXT, key TEXT, algorithm TEXT, name TEXT, timestamp INTEGER);
-CREATE TABLE IF NOT EXISTS authentication (id TEXT, counter INTEGER, timestamp INTEGER);
+CREATE TABLE access (user TEXT, class TEXT, label TEXT);
+CREATE UNIQUE INDEX unique_index__access__user__class__label ON access (user, class, label);
+CREATE INDEX index__access__user__class ON access (user, class);
 
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__challenge__value ON challenge (value);
-CREATE UNIQUE INDEX IF NOT EXISTS constraint__credential__id ON credential (id);
+CREATE TABLE rule (name TEXT, [index] INTEGER, type TEXT, [values] TEXT);
+CREATE UNIQUE INDEX unique_index__rule__name__index__type ON rule (name, [index], type);
 
-CREATE INDEX IF NOT EXISTS index__challenge__usage ON challenge (usage);
+CREATE TABLE route (user TEXT, class TEXT, inbound TEXT, outbound TEXT, rule TEXT, target TEXT, priority INTEGER);
+CREATE UNIQUE INDEX unique_index__route__user__class__rule__target ON route (user, class, inbound, outbound, rule, target);
+CREATE INDEX index__route__user__class__priority ON route (user, class, priority);
