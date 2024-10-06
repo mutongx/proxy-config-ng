@@ -15,6 +15,17 @@ async function handlerGetConfig(request: Request, env: Env, ctx: ExecutionContex
       return null;
   }
 
+  user.config = {
+      ...user.config,
+      ...Object.fromEntries(Array.from(url.searchParams).map(([key, value]) => {
+          try {
+              return [key, JSON.parse(value)];
+          } catch (e) {
+              return [key, value];
+          }
+      })),
+  };
+
   const builder = new SingBoxConfigBuilder(user, db);
   await builder.buildInbounds();
   await builder.buildOutbounds(await db.getAsset(user, "proxy"));
