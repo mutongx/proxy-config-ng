@@ -217,6 +217,10 @@ export class SingBoxConfigBuilder {
 
   async buildDns(dnsList: Dns[]) {
     this.config.dns = { servers: [] };
+    this.config.dns.servers.push({
+      "tag": "local",
+      "address": "local",
+    });
     for (const dns of dnsList) {
       this.config.dns.servers.push({
         "tag": dns.addr,
