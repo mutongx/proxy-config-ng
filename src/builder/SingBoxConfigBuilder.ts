@@ -323,7 +323,7 @@ export class SingBoxConfigBuilder {
             throw "sing-box v1.9 compat failed: rule length is not 1";
           }
           const sourceRule = ruleSet.rules[0];
-          const targetRule = this.config.route.rules[this.config.route.rules.length - 1];
+          const targetRule = this.config.dns.rules[this.config.dns.rules.length - 1];
           Object.entries(sourceRule).forEach(([key, values]) => {
             targetRule[key] = values;
           })
