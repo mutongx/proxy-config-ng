@@ -150,11 +150,6 @@ export class SingBoxConfigBuilder {
         "auto_redirect": orDefault(this.user.config.tun_auto_redirect, undefined),
         "strict_route": orDefault(this.user.config.tun_strict_route, true),
       })
-      // Quirk: remove the following after sing-box v1.10 release
-      const targetInbound = this.config.inbounds[this.config.inbounds.length - 1];
-      targetInbound["inet4_address"] = targetInbound["address"][0];
-      targetInbound["inet6_address"] = targetInbound["address"][1];
-      targetInbound["address"] = undefined;
     }
     if (this.user.config.enable_tproxy) {
       this.config.inbounds.push({
