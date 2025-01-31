@@ -272,20 +272,6 @@ export class SingBoxConfigBuilder {
         "rule_set": tag,
         "outbound": route.target,
       });
-      // Quirk: remove the following after sing-box v1.10 release
-      for (const ruleSet of this.config.route.rule_set) {
-        if (ruleSet.tag == tag && ruleSet.type == "inline") {
-          if (ruleSet.rules.length != 1) {
-            throw "sing-box v1.9 compat failed: rule length is not 1";
-          }
-          const sourceRule = ruleSet.rules[0];
-          const targetRule = this.config.route.rules[this.config.route.rules.length - 1];
-          Object.entries(sourceRule).forEach(([key, values]) => {
-            targetRule[key] = values;
-          })
-          targetRule.rule_set = undefined;
-        }
-      }
     }
   }
 
@@ -311,20 +297,6 @@ export class SingBoxConfigBuilder {
         "rule_set": tag,
         "server": route.target,
       });
-      // Quirk: remove the following after sing-box v1.10 release
-      for (const ruleSet of this.config.route.rule_set) {
-        if (ruleSet.tag == tag && ruleSet.type == "inline") {
-          if (ruleSet.rules.length != 1) {
-            throw "sing-box v1.9 compat failed: rule length is not 1";
-          }
-          const sourceRule = ruleSet.rules[0];
-          const targetRule = this.config.dns.rules[this.config.dns.rules.length - 1];
-          Object.entries(sourceRule).forEach(([key, values]) => {
-            targetRule[key] = values;
-          })
-          targetRule.rule_set = undefined;
-        }
-      }
     }
     if (this.user.config.enable_fakeip) {
       this.config.dns.rules.push({
@@ -353,8 +325,6 @@ export class SingBoxConfigBuilder {
         "secret": orDefault(this.user.config.clash_api_token, ""),
       };
     }
-    // Quirk: remove the following after sing-box v1.10 release
-    this.config.route.rule_set = this.config.route.rule_set.filter((value: any) => value.type != "inline");
   }
 
   get() {
