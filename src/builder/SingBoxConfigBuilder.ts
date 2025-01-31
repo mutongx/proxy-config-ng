@@ -137,13 +137,14 @@ export class SingBoxConfigBuilder {
       "listen_port": orDefault(this.user.config.listen_port, 5353),
     });
     if (this.user.config.enable_tun) {
+      const tun_address = ["127.27.0.1/30"];
+      if (this.user.config.ipv6) {
+        tun_address.push("fd77:baba:9999::1/126");
+      }
       this.config.inbounds.push({
         "type": "tun",
         "tag": "tun",
-        "address": [
-          "172.27.0.1/30",
-          "fd77:baba:9999::1/126",
-        ],
+        "address": tun_address,
         "stack": this.user.config.tun_stack,
         "auto_route": orDefault(this.user.config.tun_auto_route, true),
         "auto_redirect": orDefault(this.user.config.tun_auto_redirect, undefined),
