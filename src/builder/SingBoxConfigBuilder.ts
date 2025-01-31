@@ -137,7 +137,7 @@ export class SingBoxConfigBuilder {
       "listen_port": orDefault(this.user.config.listen_port, 5353),
     });
     if (this.user.config.enable_tun) {
-      const tun_address = ["127.27.0.1/30"];
+      const tun_address = ["172.27.0.1/30"];
       if (this.user.config.ipv6) {
         tun_address.push("fd77:baba:9999::1/126");
       }
