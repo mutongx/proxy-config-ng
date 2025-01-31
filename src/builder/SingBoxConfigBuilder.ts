@@ -246,6 +246,17 @@ export class SingBoxConfigBuilder {
       "action": "hijack-dns",
     });
     this.config.route.rules.push({
+      "protocol": "stun",
+      "action": "route",
+      "outbound": "direct",
+    });
+    this.config.route.rules.push({
+      "protocol": "bittorrent",
+      "action": "route",
+      "outbound": "direct",
+    });
+    
+    this.config.route.rules.push({
       "ip_is_private": true,
       "action": "route",
       "outbound": "direct",
