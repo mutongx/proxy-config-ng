@@ -104,7 +104,7 @@ export class SingBoxConfigBuilder {
       }
     } else {
       // Build inline rule
-      const ruleList = await this.db.getRuleSet(name);
+      const ruleList = await this.db.getRules(name);
       if (ruleList.length == 0) {
         throw `unknown rule set name: ${name}`;
       }
@@ -124,6 +124,7 @@ export class SingBoxConfigBuilder {
         "rules": mergedRules,
       });
     }
+    this.rulesetMapping.set(name, tag);
     return tag;
   }
 
@@ -134,7 +135,6 @@ export class SingBoxConfigBuilder {
       "tag": "mixed",
       "listen": orDefault(this.user.config.listen, "127.0.0.1"),
       "listen_port": orDefault(this.user.config.listen_port, 5353),
-      "sniff": true,
     });
     if (this.user.config.enable_tun) {
       this.config.inbounds.push({
@@ -144,7 +144,6 @@ export class SingBoxConfigBuilder {
           "172.27.0.1/30",
           "fd77:baba:9999::1/126",
         ],
-        "sniff": true,
         "stack": this.user.config.tun_stack,
         "auto_route": orDefault(this.user.config.tun_auto_route, true),
         "auto_redirect": orDefault(this.user.config.tun_auto_redirect, undefined),
@@ -157,7 +156,6 @@ export class SingBoxConfigBuilder {
         "tag": "tproxy",
         "listen": orDefault(this.user.config.tproxy_listen, "0.0.0.0"),
         "listen_port": orDefault(this.user.config.tproxy_listen_port, 5356),
-        "sniff": true,
       })
     }
   }
@@ -206,8 +204,6 @@ export class SingBoxConfigBuilder {
       });
     }
     this.config.outbounds.push({ "type": "direct", "tag": "direct" });
-    this.config.outbounds.push({ "type": "block", "tag": "block" });
-    this.config.outbounds.push({ "type": "dns", "tag": "dns" });
   }
 
   async buildDns(dnsList: Dns[]) {
@@ -236,66 +232,67 @@ export class SingBoxConfigBuilder {
     }
   }
 
-  async buildRoute(routeList: Route[]) {
+  async buildRules(actions: Action[]) {
     this.config.route = {
       "rules": [],
       "rule_set": [],
     };
     this.config.route.rules.push({
+      "action": "sniff",
+    });
+    this.config.route.rules.push({
       "protocol": "dns",
-      "outbound": "dns",
+      "action": "hijack-dns",
     });
     this.config.route.rules.push({
       "ip_is_private": true,
+      "action": "route",
       "outbound": "direct",
     });
-    for (const route of routeList) {
+    for (const action of actions) {
       // Special handling for final route
-      if (route.rule === null) {
-        if (route.inbound !== null) {
-          throw "final route cannot define inbound";
+      if (action.rule === null) {
+        if (action.inbound !== null) {
+          throw new Error("final action cannot define inbound");
         }
-        if (route.outbound !== null) {
-          throw "final route cannot define outbound";
+        if (action.action != "route") {
+          throw new Error("final action must be route");
         }
-        this.config.route.final = route.target;
+        this.config.route.final = action.options.outbound;
         continue;
       }
-      // Validity check
-      if (route.outbound !== null) {
-        throw "proxy route cannot define outbound";
-      }
       // Generate rule
-      const tag = await this.getRuleSet(route.rule);
+      const tag = await this.getRuleSet(action.rule);
       this.config.route.rules.push({
-        "inbound": route.inbound || undefined,
+        "inbound": action.inbound || undefined,
         "rule_set": tag,
-        "outbound": route.target,
+        "action": action.action,
+        ...action.options,
       });
     }
   }
 
-  async buildDnsRoute(routeList: Route[]) {
+  async buildDnsRules(actions: Action[]) {
     this.config.dns.rules = [];
-    for (const route of routeList) {
+    for (const action of actions) {
       // Special handling for final route
-      if (route.rule === null) {
-        if (route.inbound !== null) {
-          throw "final route cannot define inbound";
+      if (action.rule === null) {
+        if (action.action != "route") {
+          if (action.inbound !== null) {
+            throw new Error("final route cannot define inbound");
+          }
+          throw new Error("final action must be route");
         }
-        if (route.outbound !== null) {
-          throw "final route cannot define outbound";
-        }
-        this.config.dns.final = route.target;
+        this.config.dns.final = action.options.server;
         continue;
       }
       // Generate rule
-      const tag = await this.getRuleSet(route.rule);
+      const tag = await this.getRuleSet(action.rule);
       this.config.dns.rules.push({
-        "inbound": route.inbound || undefined,
-        "outbound": route.outbound || undefined,
+        "inbound": action.inbound || undefined,
         "rule_set": tag,
-        "server": route.target,
+        "action": action.action,
+        ...action.options,
       });
     }
     if (this.user.config.enable_fakeip) {

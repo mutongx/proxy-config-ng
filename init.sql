@@ -21,6 +21,6 @@ CREATE INDEX index__access__user__class ON access (user, class);
 CREATE TABLE rule (name TEXT, [index] INTEGER, type TEXT, [values] TEXT);
 CREATE UNIQUE INDEX unique_index__rule__name__index__type ON rule (name, [index], type);
 
-CREATE TABLE route (user TEXT, class TEXT, inbound TEXT, outbound TEXT, rule TEXT, target TEXT, priority INTEGER);
-CREATE UNIQUE INDEX unique_index__route__user__class__rule__target ON route (user, class, inbound, outbound, rule, target);
-CREATE INDEX index__route__user__class__priority ON route (user, class, priority);
+CREATE TABLE action (user TEXT, class TEXT, inbound TEXT, rule TEXT, action TEXT, options TEXT, priority INTEGER);
+CREATE UNIQUE INDEX unique_index__action__user__class__inbound__rule__action ON action (user, class, inbound, rule, action);
+CREATE INDEX index__action__user__class__priority ON action (user, class, priority);

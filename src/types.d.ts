@@ -60,12 +60,12 @@ interface Rule {
   values: string;
 }
 
-interface Route {
+interface Action {
   user: string;
   class: string;
-  inbound: string?;
-  outbound: string?;
-  rule: string?;
-  target: string;
+  inbound: string | null;
+  rule: string;
+  action: string;
+  options: { [key: string]: any };
   priority: number;
 }
