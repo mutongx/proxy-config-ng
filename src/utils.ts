@@ -23,6 +23,7 @@ export function parseConfigString(str: string | null) {
     return result;
   }
   let state: "sep" | "key" | "value" | "value-quote" = "sep";
+  let quote: '"' | "'" | null = null;
   let currentKey: string = "";
   let currentValue: string = "";
   for (let i = 0; i <= str.length; ++i) {
@@ -57,14 +58,20 @@ export function parseConfigString(str: string | null) {
         switch (ch) {
           case " ":
             state = "sep";
-            if (currentValue.includes(",")) {
-              result[currentKey] = currentValue.split(",");
-            } else {
-              result[currentKey] = currentValue;
+            try {
+              result[currentKey] = JSON.parse(currentValue);
+            } catch (e) {
+              if (currentValue.includes(",")) {
+                result[currentKey] = currentValue.split(",");
+              } else {
+                result[currentKey] = currentValue;
+              }
             }
             break;
           case '"':
+          case "'":
             state = "value-quote";
+            quote = ch;
             break;
           default:
             currentValue += ch;
@@ -73,7 +80,13 @@ export function parseConfigString(str: string | null) {
       case "value-quote":
         switch (ch) {
           case '"':
-            state = "value";
+          case "'":
+            if (ch == quote) {
+              state = "value";
+              quote = null;
+            } else {
+              currentValue += ch;
+            }
             break;
           default:
             currentValue += ch;
