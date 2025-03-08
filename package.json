@@ -8,10 +8,10 @@
     "gentype": "wrangler types src/workers.d.ts"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250129.0",
+    "@cloudflare/workers-types": "^4.20250224.0",
     "@types/json-pointer": "^1.0.34",
     "json-pointer": "^0.6.2",
-    "typescript": "^5.7.3",
-    "wrangler": "^3.106.0"
+    "typescript": "^5.8.2",
+    "wrangler": "^3.111.0"
   }
 }
