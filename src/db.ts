@@ -1,3 +1,5 @@
+import { parseConfigString } from "./utils";
+
 export default class {
   db: D1Database;
   hostCache: Map<string, Host> | null = null;
@@ -7,36 +9,13 @@ export default class {
     this.db = db;
   }
 
-  parseConfigString(str: string | null) {
-    const result: {[key: string]: any} = {}
-    if (str == null) {
-      return result;
-    }
-    for (const kvPair of str.split(",")) {
-      const equalPos = kvPair.indexOf("=");
-      if (equalPos == -1) {
-        throw new Error("invalid config string");
-      }
-      const key = kvPair.substring(0, equalPos);
-      let value = kvPair.substring(equalPos + 1);
-      try {
-        value = JSON.parse(value);
-      } catch (e) {
-        // do nothing
-      }
-      result[key] = value;
-      console.log(result);
-    }
-    return result;
-  }
-
   async getUserByToken(token: string): Promise<User | null> {
     const stmt = this.db.prepare("SELECT * FROM user WHERE token = ?1").bind(token);
     const user = await stmt.first();
     if (!user) {
       return null;
     }
-    user["config"] = this.parseConfigString(user["config"] as string | null);
+    user["config"] = parseConfigString(user["config"] as string | null);
     return user as unknown as User;
   }
 
@@ -76,32 +55,38 @@ export default class {
       `AND access.label = ${assetClass}.label `
     ).bind(user.name);
     if (assetClass == "proxy") {
-      return (await stmt.all()).results.map((value) => value as unknown as Proxy);  
+      return (await stmt.all()).results.map((value) => {
+        value["config"] = parseConfigString(value["config"] as string | null);
+        return value as unknown as Proxy;
+      });  
     }
     if (assetClass == "dns") {
       return (await stmt.all()).results.map((value) => value as unknown as Dns);
     }
   }
 
-  async getRules(name: string) {
+  async getRuleSets(name: string) {
     const stmt = this.db.prepare(
-      "SELECT * FROM rule " +
+      "SELECT * FROM rule_set " +
       "WHERE name = ?1 " +
-      "ORDER BY [index]"
+      "ORDER BY seq"
     ).bind(name);
-    return (await stmt.all()).results.map((value) => value as unknown as Rule);
+    return (await stmt.all()).results.map((value) => {
+      value["config"] = parseConfigString(value["config"] as string | null);
+      return value as unknown as RuleSet;
+    });
   }
 
-  async getActions(user: User, actionClass: "proxy" | "dns") {
+  async getRuleActions(user: User, actionClass: "proxy" | "dns") {
     const stmt = this.db.prepare(
-      "SELECT * FROM action " +
-      "WHERE action.user = ?1 " +
-      "AND action.class = ?2 " +
+      "SELECT * FROM rule_action " +
+      "WHERE user = ?1 " +
+      "AND class = ?2 " +
       "ORDER BY priority"
     ).bind(user.name, actionClass);
     return (await stmt.all()).results.map((value) => {
-      value["options"] = this.parseConfigString(value["options"] as string);
-      return value as unknown as Action;
+      value["config"] = parseConfigString(value["config"] as string | null);
+      return value as unknown as RuleAction;
     })
   }
 

@@ -2,33 +2,20 @@ import JsonPointer from "json-pointer";
 
 import Database from "../db";
 import ProxyDefs, { ConfigObject, ConfigValue } from "./defs";
-
-function orDefault<T>(value: T | undefined, defaultValue: T) {
-  if (value === undefined) {
-    return defaultValue;
-  }
-  return value;
-}
-
-function splitArray(s: string | null) {
-  if (s === null) {
-    return [];
-  }
-  return s.split(",");
-}
+import { orDefault, ensureArray } from "../utils";
 
 export class SingBoxConfigBuilder {
 
   user: User;
   db: Database;
-  rulesetMapping: Map<string, string>;
-  config: any;
+  ruleSetMapping: Map<string, string>;
+  buildResult: any;
 
   constructor(user: User, db: Database) {
     this.user = user;
     this.db = db;
-    this.rulesetMapping = new Map();
-    this.config = {};
+    this.ruleSetMapping = new Map();
+    this.buildResult = {};
   }
 
   async fillConfig(obj: ConfigObject, args: object) {
@@ -66,9 +53,9 @@ export class SingBoxConfigBuilder {
   }
 
   async getRuleSet(name: string): Promise<string> {
-    var tag = this.rulesetMapping.get(name);
-    if (tag) {
-      return tag;
+    var ruleSetTag = this.ruleSetMapping.get(name);
+    if (ruleSetTag) {
+      return ruleSetTag;
     }
     // Build remote rule
     if (name.startsWith("ref:")) {
@@ -80,20 +67,20 @@ export class SingBoxConfigBuilder {
       const file = splitedRef[2];
       switch (repo) {
         case "geosite":
-          tag = `${repo}-${file}`;
-          this.config.route.rule_set.push({
+          ruleSetTag = `${repo}-${file}`;
+          this.buildResult.route.rule_set.push({
             "type": "remote",
-            "tag": tag,
+            "tag": ruleSetTag,
             "format": "binary",
             "url": `https://github.com/SagerNet/sing-geosite/raw/refs/heads/rule-set/geosite-${file}.srs`,
             "download_detour": "proxy",
           });
           break;
         case "geoip":
-          tag = `${repo}-${file}`;
-          this.config.route.rule_set.push({
+          ruleSetTag = `${repo}-${file}`;
+          this.buildResult.route.rule_set.push({
             "type": "remote",
-            "tag": tag,
+            "tag": ruleSetTag,
             "format": "binary",
             "url": `https://github.com/SagerNet/sing-geoip/raw/refs/heads/rule-set/geoip-${file}.srs`,
             "download_detour": "proxy",
@@ -104,33 +91,31 @@ export class SingBoxConfigBuilder {
       }
     } else {
       // Build inline rule
-      const ruleList = await this.db.getRules(name);
-      if (ruleList.length == 0) {
+      const ruleSets = await this.db.getRuleSets(name);
+      if (ruleSets.length == 0) {
         throw `unknown rule set name: ${name}`;
       }
-      const mergedRules: Record<string, (string | number)[]>[] = [];
-      for (const rule of ruleList) {
-        while (rule.index >= mergedRules.length) {
-          mergedRules.push({});
+      const parsedRules: { [key: string] : (string|number)[] }[] = [];
+      for (const ruleSet of ruleSets) {
+        for (const key of Object.keys(ruleSet.config)) {
+          ruleSet.config[key] = ensureArray(ruleSet.config[key]).map((v) => /^\d+$/.test(v) ? parseInt(v) : v);
         }
-        const values = splitArray(rule.values).map(
-          (value) => /^\d+$/.test(value) ? parseInt(value) : value);
-        mergedRules[rule.index][rule.type] = values;
+        parsedRules.push(ruleSet.config);
       }
-      tag = name;
-      this.config.route.rule_set.push({
+      ruleSetTag = name;
+      this.buildResult.route.rule_set.push({
         "type": "inline",
-        "tag": tag,
-        "rules": mergedRules,
+        "tag": ruleSetTag,
+        "rules": parsedRules,
       });
     }
-    this.rulesetMapping.set(name, tag);
-    return tag;
+    this.ruleSetMapping.set(name, ruleSetTag);
+    return ruleSetTag;
   }
 
   async buildInbounds() {
-    this.config.inbounds = [];
-    this.config.inbounds.push({
+    this.buildResult.inbounds = [];
+    this.buildResult.inbounds.push({
       "type": "mixed",
       "tag": "mixed",
       "listen": orDefault(this.user.config.listen, "127.0.0.1"),
@@ -141,7 +126,7 @@ export class SingBoxConfigBuilder {
       if (this.user.config.ipv6) {
         tun_address.push("fd77:baba:9999::1/126");
       }
-      this.config.inbounds.push({
+      this.buildResult.inbounds.push({
         "type": "tun",
         "tag": "tun",
         "address": tun_address,
@@ -152,7 +137,7 @@ export class SingBoxConfigBuilder {
       })
     }
     if (this.user.config.enable_tproxy) {
-      this.config.inbounds.push({
+      this.buildResult.inbounds.push({
         "type": "tproxy",
         "tag": "tproxy",
         "listen": orDefault(this.user.config.tproxy_listen, "0.0.0.0"),
@@ -164,7 +149,7 @@ export class SingBoxConfigBuilder {
   async buildOutbounds(proxyList: Proxy[]) {
     const grouper = new Map<string, string[]>();
     const counter = new Map<string, number>();
-    this.config.outbounds = [];
+    this.buildResult.outbounds = [];
     for (const proxy of proxyList) {
       const host = await this.db.getHostByName(proxy.host);
       if (!host) {
@@ -179,7 +164,7 @@ export class SingBoxConfigBuilder {
       counter.set(slug, count + 1);
       // Create tag and group
       const tag = `${slug}-${count}`;
-      const groups = ["proxy", ...splitArray(proxy.routes)];
+      const groups = ["proxy", ...ensureArray(proxy.config.selector)];
       for (const group of groups) {
         if (!grouper.has(group)) {
           grouper.set(group, []);
@@ -192,123 +177,129 @@ export class SingBoxConfigBuilder {
         "server": this.user.config.ipv6 ? (host.addr6 || host.addr) : host.addr,
         "server_port": proxy.port,
       })
-      this.config.outbounds.push({
+      this.buildResult.outbounds.push({
         "tag": tag,
         ...proxyConfig,
       });
     }
     for (const [groupName, groupValues] of grouper) {
-      this.config.outbounds.push({
+      this.buildResult.outbounds.push({
         "type": "selector",
         "tag": groupName,
         "outbounds": groupValues,
       });
     }
-    this.config.outbounds.push({ "type": "direct", "tag": "direct" });
+    this.buildResult.outbounds.push({ "type": "direct", "tag": "direct" });
   }
 
   async buildDns(dnsList: Dns[]) {
-    this.config.dns = { servers: [] };
-    this.config.dns.servers.push({
+    this.buildResult.dns = { servers: [] };
+    this.buildResult.dns.servers.push({
       "tag": "local",
       "address": "local",
     });
     for (const dns of dnsList) {
-      this.config.dns.servers.push({
+      this.buildResult.dns.servers.push({
         "tag": dns.addr,
         "address": dns.addr,
         "detour": dns.detour,
       });
     }
     if (this.user.config.enable_fakeip) {
-      this.config.dns.fakeip = {
+      this.buildResult.dns.fakeip = {
         "enabled": true,
         "inet4_range": orDefault(this.user.config.fakeip_inet4_range, "198.18.0.0/15"),
         "inet6_range": orDefault(this.user.config.fakeip_inet6_range, "fc00::/18"),
       }
-      this.config.dns.servers.push({
+      this.buildResult.dns.servers.push({
         "tag": "fakeip",
         "address": "fakeip",
       });
     }
   }
 
-  async buildRules(actions: Action[]) {
-    this.config.route = {
+  async buildRules(actions: RuleAction[]) {
+    this.buildResult.route = {
       "rules": [],
       "rule_set": [],
     };
-    this.config.route.rules.push({
+    this.buildResult.route.rules.push({
       "action": "sniff",
     });
-    this.config.route.rules.push({
+    this.buildResult.route.rules.push({
       "protocol": "dns",
       "action": "hijack-dns",
     });
-    this.config.route.rules.push({
+    this.buildResult.route.rules.push({
       "protocol": "stun",
       "action": "route",
       "outbound": "direct",
     });
-    this.config.route.rules.push({
+    this.buildResult.route.rules.push({
       "protocol": "bittorrent",
       "action": "route",
       "outbound": "direct",
     });
     
-    this.config.route.rules.push({
+    this.buildResult.route.rules.push({
       "ip_is_private": true,
       "action": "route",
       "outbound": "direct",
     });
     for (const action of actions) {
       // Special handling for final route
-      if (action.rule === null) {
+      if (action.rule_set === null) {
         if (action.inbound !== null) {
           throw new Error("final action cannot define inbound");
         }
-        if (action.action != "route") {
+        if (action.rule_action !== "route") {
           throw new Error("final action must be route");
         }
-        this.config.route.final = action.options.outbound;
+        if (action.config.outbound === undefined) {
+          throw new Error("final action must have an outbound")
+        }
+        this.buildResult.route.final = action.config.outbound;
         continue;
       }
       // Generate rule
-      const tag = await this.getRuleSet(action.rule);
-      this.config.route.rules.push({
+      const tag = await this.getRuleSet(action.rule_set);
+      this.buildResult.route.rules.push({
         "inbound": action.inbound || undefined,
         "rule_set": tag,
-        "action": action.action,
-        ...action.options,
+        "action": action.rule_action,
+        ...action.config,
       });
     }
   }
 
-  async buildDnsRules(actions: Action[]) {
-    this.config.dns.rules = [];
+  async buildDnsRules(actions: RuleAction[]) {
+    this.buildResult.dns.rules = [];
     for (const action of actions) {
       // Special handling for final route
-      if (action.rule === null) {
-        if (action.action != "route") {
-          if (action.inbound !== null) {
-            throw new Error("final route cannot define inbound");
-          }
-          throw new Error("final action must be route");
+      if (action.rule_set === null) {
+        if (action.inbound !== null) {
+          throw new Error("final dns actoun cannot define inbound");
         }
-        this.config.dns.final = action.options.server;
+        if (action.rule_action !== "route") {
+          throw new Error("final dns action must be route");
+        }
+        if (action.config.server === undefined) {
+          throw new Error("final dns action must have an outbound")
+        }
+        this.buildResult.dns.final = action.config.server;
         continue;
       }
       // Generate rule
-      const tag = await this.getRuleSet(action.rule);
-      this.config.dns.rules.push({
+      const tag = await this.getRuleSet(action.rule_set);
+      this.buildResult.dns.rules.push({
         "inbound": action.inbound || undefined,
         "rule_set": tag,
-        "action": action.action,
-        ...action.options,
+        "action": action.rule_action,
+        ...action.config,
       });
     }
     if (this.user.config.enable_fakeip) {
-      this.config.dns.rules.push({
+      this.buildResult.dns.rules.push({
         "query_type": ["A", "AAAA"],
         "server": "fakeip",
       });
@@ -316,18 +307,18 @@ export class SingBoxConfigBuilder {
   }
 
   async finalize() {
-    this.config.dns.independent_cache = true;
-    this.config.route.auto_detect_interface = true;
-    this.config.log = { "level": "info" };
-    this.config.experimental = {}
-    this.config.experimental.cache_file = {
+    this.buildResult.dns.independent_cache = true;
+    this.buildResult.route.auto_detect_interface = true;
+    this.buildResult.log = { "level": "info" };
+    this.buildResult.experimental = {}
+    this.buildResult.experimental.cache_file = {
       "enabled": true,
       "path": "cache.db",
       "cache_id": "",
       "store_fakeip": true
     };
     if (this.user.config.enable_clash_api !== false) {
-      this.config.experimental.clash_api = {
+      this.buildResult.experimental.clash_api = {
         "external_controller": orDefault(this.user.config.clash_api_listen, "127.0.0.1:9090"),
         "external_ui": "ui",
         "external_ui_download_url": "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
@@ -337,7 +328,7 @@ export class SingBoxConfigBuilder {
   }
 
   get() {
-    return this.config;
+    return this.buildResult;
   }
 
 };

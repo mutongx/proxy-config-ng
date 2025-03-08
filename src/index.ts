@@ -29,9 +29,9 @@ async function handlerGetConfig(request: Request, env: Env, ctx: ExecutionContex
   const builder = new SingBoxConfigBuilder(user, db);
   await builder.buildInbounds();
   await builder.buildOutbounds(await db.getAsset(user, "proxy"));
-  await builder.buildRules(await db.getActions(user, "proxy"));
+  await builder.buildRules(await db.getRuleActions(user, "proxy"));
   await builder.buildDns(await db.getAsset(user, "dns"));
-  await builder.buildDnsRules(await db.getActions(user, "dns"));
+  await builder.buildDnsRules(await db.getRuleActions(user, "dns"));
   await builder.finalize();
 
   return new Response(

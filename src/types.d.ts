@@ -1,3 +1,11 @@
+// Cloudflare Workers type definitions
+
+interface Env {
+  DB: D1Database,
+}
+
+// Database type definitions
+
 interface User {
   name: string;
   token: string;
@@ -37,7 +45,9 @@ interface Proxy {
   host: string;
   port: number;
   type: string;
-  routes: string;
+  config: {
+    selector: string[] | undefined,
+  };
   label: string;
 }
   
@@ -53,19 +63,18 @@ interface Access {
   label: string;
 }
 
-interface Rule {
+interface RuleSet {
   name: string;
-  index: number;
-  type: string;
-  values: string;
+  seq: number;
+  config: any;
 }
 
-interface Action {
+interface RuleAction {
   user: string;
   class: string;
   inbound: string | null;
-  rule: string;
-  action: string;
-  options: { [key: string]: any };
+  rule_set: string;
+  rule_action: string;
+  config: any;
   priority: number;
 }
