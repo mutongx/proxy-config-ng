@@ -18,6 +18,10 @@ export class SingBoxConfigBuilder {
     this.buildResult = {};
   }
 
+  filterAddresses(addrs: string[]) {
+    return addrs.filter((value) => value.indexOf(":") == -1 || this.user.config.ipv6 === true)
+  }
+
   async fillConfig(obj: ConfigObject, args: object) {
     for (const key of Object.keys(obj)) {
       const value = obj[key];
@@ -122,18 +126,16 @@ export class SingBoxConfigBuilder {
       "listen_port": orDefault(this.user.config.listen_port, 5353),
     });
     if (this.user.config.enable_tun) {
-      const tun_address = ["172.27.0.1/30"];
-      if (this.user.config.ipv6) {
-        tun_address.push("fd77:baba:9999::1/126");
-      }
+      const tun_address = this.filterAddresses(["172.27.0.1/30", "fd77:baba:9999::1/126"]);
       this.buildResult.inbounds.push({
         "type": "tun",
         "tag": "tun",
         "address": tun_address,
-        "stack": this.user.config.tun_stack,
         "auto_route": orDefault(this.user.config.tun_auto_route, true),
-        "auto_redirect": orDefault(this.user.config.tun_auto_redirect, undefined),
         "strict_route": orDefault(this.user.config.tun_strict_route, true),
+        "auto_redirect": orDefault(this.user.config.tun_auto_redirect, true),
+        "route_exclude_address": this.user.config.tun_route_exclude_address ?
+          this.filterAddresses(this.user.config.tun_route_exclude_address) : undefined,
       })
     }
     if (this.user.config.enable_tproxy) {

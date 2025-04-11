@@ -17,7 +17,7 @@ interface User {
     tun_auto_route: boolean | undefined,
     tun_auto_redirect: boolean | undefined,
     tun_strict_route: boolean | undefined,
-    tun_stack: string | undefined,
+    tun_route_exclude_address: string[] | undefined,
     enable_tproxy: boolean | undefined,
     tproxy_listen: string | undefined,
     tproxy_listen_port: number | undefined,
