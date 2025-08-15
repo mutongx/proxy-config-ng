@@ -225,6 +225,9 @@ export class SingBoxConfigBuilder {
     this.buildResult.route = {
       "rules": [],
       "rule_set": [],
+      "default_domain_resolver": {
+        "server": "local",
+      },
     };
     this.buildResult.route.rules.push({
       "action": "sniff",
