@@ -52,6 +52,8 @@ interface Proxy {
 }
   
 interface Dns {
+  name: string;
+  type: string;
   addr: string;
   detour: string;
   label: string;

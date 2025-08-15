@@ -202,8 +202,9 @@ export class SingBoxConfigBuilder {
     });
     for (const dns of dnsList) {
       this.buildResult.dns.servers.push({
-        "tag": dns.addr,
-        "address": dns.addr,
+        "tag": dns.name,
+        "type": dns.type,
+        "server": dns.addr,
         "detour": dns.detour,
       });
     }

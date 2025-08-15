@@ -16,8 +16,8 @@ CREATE TABLE proxy (host TEXT, port INTEGER, type TEXT, config TEXT, label TEXT)
 CREATE UNIQUE INDEX unique_index__proxy__host__port__type ON proxy (host, port, type);
 CREATE INDEX index__proxy__label ON proxy (label);
 
-CREATE TABLE dns (addr TEXT, detour TEXT, label TEXT);
-CREATE UNIQUE INDEX unique_index__dns__addr__detour ON dns (addr, detour);
+CREATE TABLE dns (name TEXT, type TEXT, addr TEXT, detour TEXT, label TEXT);
+CREATE UNIQUE INDEX unique_index__dns__name ON dns (name);
 CREATE INDEX index__dns__label ON dns (label);
 
 CREATE TABLE access (user TEXT, class TEXT, label TEXT);
