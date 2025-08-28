@@ -310,7 +310,7 @@ export class SingBoxConfigBuilder {
   async finalize() {
     this.buildResult.dns.independent_cache = true;
     this.buildResult.route.auto_detect_interface = true;
-    this.buildResult.log = { "level": "info" };
+    this.buildResult.log = { "level": orDefault(this.user.config.log_level, "info") };
     this.buildResult.experimental = {}
     this.buildResult.experimental.cache_file = {
       "enabled": true,

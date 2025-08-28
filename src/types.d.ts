@@ -11,6 +11,7 @@ interface User {
   token: string;
   config: {
     ipv6: boolean | undefined,
+    log_level: string | undefined,
     listen: string | undefined,
     listen_port: number | undefined,
     enable_tun: boolean | undefined,
