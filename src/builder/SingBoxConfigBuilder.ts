@@ -169,14 +169,15 @@ export class SingBoxConfigBuilder {
         grouper.get(group)!.push(tag);
       }
       // Create the proxy config
-      const proxyConfig = structuredClone(ProxyDefs[proxy.type]);
-      await this.fillConfig(proxyConfig, {
+      const proxyDef = structuredClone(ProxyDefs[proxy.type]);
+      await this.fillConfig(proxyDef, {
         "server": this.user.config.ipv6 ? (host.addr6 || host.addr) : host.addr,
         "server_port": proxy.port,
+        ...proxy.config,
       })
       this.buildResult.outbounds.push({
         "tag": tag,
-        ...proxyConfig,
+        ...proxyDef,
       });
     }
     for (const [groupName, groupValues] of grouper) {
