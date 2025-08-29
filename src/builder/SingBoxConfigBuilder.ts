@@ -192,6 +192,9 @@ export class SingBoxConfigBuilder {
 
   async buildDns(dnsList: Dns[]) {
     this.buildResult.dns = { servers: [] };
+    if (!this.user.config.ipv6) {
+      this.buildResult.dns.strategy = "ipv4_only"
+    }
     this.buildResult.dns.servers.push({
       "tag": "local",
       "type": "local",
