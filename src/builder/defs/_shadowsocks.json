@@ -1,9 +1,9 @@
 {
   "type": "shadowsocks",
-  "server": { "$ref": "args:/server" },
-  "server_port": { "$ref": "args:/server_port" },
-  "method": { "$ref": "args:/method" },
-  "password": { "$ref": "secrets:shadowsocks_password" },
+  "server": { "$ref": "proxy:host" },
+  "server_port": { "$ref": "proxy:port" },
+  "method": { "$ref": "vars:/method" },
+  "password": { "$ref": "vars:/password" },
   "network": "tcp",
   "multiplex": {
     "enabled": true,

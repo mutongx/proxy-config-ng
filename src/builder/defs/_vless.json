@@ -1,13 +1,13 @@
 {
   "type": "vless",
-  "server": { "$ref": "args:/server" },
-  "server_port": { "$ref": "args:/server_port" },
-  "uuid": { "$ref": "secrets:vless_uuid" },
+  "server": { "$ref": "proxy:host" },
+  "server_port": { "$ref": "proxy:port" },
+  "uuid": { "$ref": "vars:/uuid" },
   "flow": "xtls-rprx-vision",
   "tls": {
     "enabled": true,
     "server_name": "127.0.0.1",
-    "certificate": { "$ref": "secrets:server_certificate" },
+    "certificate": { "$ref": "vars:/server_certificate" },
     "utls": {
       "enabled": true,
       "fingerprint": "firefox"

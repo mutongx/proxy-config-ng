@@ -37,7 +37,7 @@ interface Host {
   addr6: string;
 }
 
-interface Secret {
+interface Variable {
   name: string;
   value: string;
 }
@@ -46,6 +46,7 @@ interface Proxy {
   host: string;
   port: number;
   type: string;
+  variable: any;
   config: {
     selector: string[] | undefined,
   };

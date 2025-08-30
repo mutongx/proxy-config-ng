@@ -1,11 +1,11 @@
 {
   "type": "anytls",
-  "server": { "$ref": "args:/server" },
-  "server_port": { "$ref": "args:/server_port" },
-  "password": { "$ref": "secrets:anytls_password" },
+  "server": { "$ref": "proxy:host" },
+  "server_port": { "$ref": "proxy:port" },
+  "password": { "$ref": "vars:/password" },
   "tls": {
     "enabled": true,
     "server_name": "127.0.0.1",
-    "certificate": { "$ref": "secrets:server_certificate" }
+    "certificate": { "$ref": "vars:/server_certificate" }
   }
 }
