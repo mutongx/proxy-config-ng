@@ -7,12 +7,12 @@ CREATE UNIQUE INDEX unique_index__user__token ON user (token);
 CREATE TABLE host (name TEXT, addr TEXT, addr6 TEXT);
 CREATE UNIQUE INDEX unique_index__host__name ON host (name);
 
-CREATE TABLE secret (name TEXT, value TEXT);
-CREATE UNIQUE INDEX unique_index__secret__name ON secret (name);
+CREATE TABLE variable (name TEXT, value TEXT);
+CREATE UNIQUE INDEX unique_index__variable__name ON variable (name);
 
 /* proxy and access list */
 
-CREATE TABLE proxy (host TEXT, port INTEGER, type TEXT, config TEXT, label TEXT);
+CREATE TABLE proxy (host TEXT, port INTEGER, type TEXT, variable TEXT, config TEXT, label TEXT);
 CREATE UNIQUE INDEX unique_index__proxy__host__port__type ON proxy (host, port, type);
 CREATE INDEX index__proxy__label ON proxy (label);
 
