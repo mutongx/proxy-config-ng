@@ -121,15 +121,26 @@ export class SingBoxConfigBuilder {
       "listen_port": orDefault(this.user.config.listen_port, 5353),
     });
     if (this.user.config.enable_tun) {
-      const tun_address = ["172.27.0.1/30", "fd77:baba:9999::1/126"];
+      const address = ["172.27.0.1/30", "fd77:baba:9999::1/126"];
+      const exclude_address = [];
+      if (!this.user.config.enable_tailscale) {
+        if (orDefault(this.user.config.tun_exclude_tailscale_network, true)) {
+          if (this.user.config.tailscale_network) {
+            exclude_address.push(...this.user.config.tailscale_network);
+          } else {
+            exclude_address.push("100.64.0.0/10", "fd7a:115c:a1e0::/48");
+          }
+          exclude_address.push("100.100.100.100/32", "fd7a:115c:a1e0::53/128")
+        }
+      }
       this.buildResult.inbounds.push({
         "type": "tun",
         "tag": "tun",
-        "address": tun_address,
+        "address": address,
         "auto_route": orDefault(this.user.config.tun_auto_route, true),
         "strict_route": orDefault(this.user.config.tun_strict_route, true),
         "auto_redirect": orDefault(this.user.config.tun_auto_redirect, true),
-        "route_exclude_address": this.user.config.tun_route_exclude_address,
+        "route_exclude_address": exclude_address,
       })
     }
     if (this.user.config.enable_tproxy) {
@@ -146,6 +157,7 @@ export class SingBoxConfigBuilder {
     const grouper = new Map<string, string[]>();
     const counter = new Map<string, number>();
     this.buildResult.outbounds = [];
+    this.buildResult.outbounds.push({ "type": "direct", "tag": "direct" });
     for (const proxy of proxyList) {
       const host = await this.db.getHostByName(proxy.host);
       if (!host) {
@@ -187,7 +199,15 @@ export class SingBoxConfigBuilder {
         "outbounds": groupValues,
       });
     }
-    this.buildResult.outbounds.push({ "type": "direct", "tag": "direct" });
+    if (this.user.config.enable_tailscale) {
+      this.buildResult.endpoints = [
+        {
+          "type": "tailscale",
+          "auth_key": this.user.config.tailscale_auth_key,
+          "control_url": this.user.config.tailscale_control_url,
+        }
+      ]
+    }
   }
 
   async buildDns(dnsList: Dns[]) {
