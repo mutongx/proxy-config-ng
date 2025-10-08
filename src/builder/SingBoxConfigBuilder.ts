@@ -18,7 +18,7 @@ export class SingBoxConfigBuilder {
     this.buildResult = {};
   }
 
-  async fillConfig(obj: ConfigObject, args: object) {
+  async fillConfig(obj: ConfigObject, host: string, port: number, vars: object) {
     for (const key of Object.keys(obj)) {
       const value = obj[key];
       if (typeof value == "string" || typeof value == "number" || typeof value == "boolean") {
@@ -33,21 +33,20 @@ export class SingBoxConfigBuilder {
       if (value.$ref) {
         const ref = value.$ref as string;
         const url = new URL(ref);
-        if (url.protocol == "args:") {
-          var newValue: ConfigValue;
+        var refValue: ConfigValue = null;
+        if (url.protocol == "proxy:") {
+          if (url.pathname == "host") { refValue = host; }
+          if (url.pathname == "port") { refValue = port; }
+        } else if (url.protocol == "vars:") {
           try {
-            newValue = JsonPointer.get(args, url.pathname) as ConfigValue;
+            refValue = JsonPointer.get(vars, url.pathname) as ConfigValue;
           } catch (e) {
-            newValue = url.searchParams.get("default");
+            refValue = await this.db.getVariableByName(url.pathname.substring(1)) || url.searchParams.get("default");
           }
-          obj[key] = newValue;
-        } else if (url.protocol == "secrets:") {
-          obj[key] = await this.db.getSecretByName(url.pathname);
-        } else {
-          throw new Error(`unsupported ref: ${ref}`);
         }
+        obj[key] = refValue;
       } else {
-        await this.fillConfig(value as ConfigObject, args);
+        await this.fillConfig(value as ConfigObject, host, port, vars);
       }
     }
   }
@@ -170,11 +169,12 @@ export class SingBoxConfigBuilder {
       }
       // Create the proxy config
       const proxyDef = structuredClone(ProxyDefs[proxy.type]);
-      await this.fillConfig(proxyDef, {
-        "server": this.user.config.ipv6 ? (host.addr6 || host.addr) : host.addr,
-        "server_port": proxy.port,
-        ...proxy.config,
-      })
+      await this.fillConfig(
+        proxyDef,
+        this.user.config.ipv6 ? (host.addr6 || host.addr) : host.addr,
+        proxy.port,
+        proxy.variable,
+      )
       this.buildResult.outbounds.push({
         "tag": tag,
         ...proxyDef,

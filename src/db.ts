@@ -3,7 +3,7 @@ import { parseConfigString } from "./utils";
 export default class {
   db: D1Database;
   hostCache: Map<string, Host> | null = null;
-  secretCache: Map<string, string> | null = null;
+  variableCache: Map<string, string> | null = null;
 
   constructor(db: D1Database) {
     this.db = db;
@@ -32,17 +32,17 @@ export default class {
     return this.hostCache.get(name) || null;
   }
 
-  async getSecretByName(name: string) {
-    if (!this.secretCache) {
-      const secretCache = new Map();
-      const stmt = this.db.prepare("SELECT * FROM secret");
+  async getVariableByName(name: string) {
+    if (!this.variableCache) {
+      const variableCache = new Map();
+      const stmt = this.db.prepare("SELECT * FROM variable");
       for (const result of (await stmt.all()).results) {
-        const secret = result as unknown as Secret;
-        secretCache.set(secret.name, secret.value);
+        const variable = result as unknown as Variable;
+        variableCache.set(variable.name, variable.value);
       }
-      this.secretCache = secretCache;
+      this.variableCache = variableCache;
     }
-    return this.secretCache.get(name) || null;
+    return this.variableCache.get(name) || null;
   }
 
   async getAsset(user: User, assetClass: "proxy"): Promise<Proxy[]>;
@@ -56,6 +56,7 @@ export default class {
     ).bind(user.name);
     if (assetClass == "proxy") {
       return (await stmt.all()).results.map((value) => {
+        value["variable"] = parseConfigString(value["variable"] as string | null);
         value["config"] = parseConfigString(value["config"] as string | null);
         return value as unknown as Proxy;
       });  
