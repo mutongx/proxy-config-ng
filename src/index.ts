@@ -38,7 +38,8 @@ async function handlerGetConfig(request: Request, env: Env, ctx: ExecutionContex
     ""
     + `// url = "${request.url}"\n`
     + `// user = "${user.name}"\n`
-    + JSON.stringify(builder.get(), null, 2),
+    + JSON.stringify(builder.get(), null, 2)
+    + "\n",
     {
       headers: {
         "Content-Type": "application/json",
