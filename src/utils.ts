@@ -18,7 +18,7 @@ export function ensureArray(value: string | string[] | null | undefined) {
 export function parseConfigString(str: string | null) {
   // The behavior mimics Linux kernel's command-line parameters,
   // see https://docs.kernel.org/admin-guide/kernel-parameters.html
-  const result: any = {}
+  const result: any = {};
   if (str === null) {
     return result;
   }
@@ -37,14 +37,14 @@ export function parseConfigString(str: string | null) {
             break;
           default:
             state = "key";
-            currentKey = ch
+            currentKey = ch;
             break;
         }
         break;
       case "key":
         switch (ch) {
           case "=":
-            state = "value"
+            state = "value";
             currentValue = "";
             break;
           case " ":

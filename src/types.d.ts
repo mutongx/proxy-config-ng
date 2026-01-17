@@ -1,7 +1,7 @@
 // Cloudflare Workers type definitions
 
 interface Env {
-  DB: D1Database,
+  DB: D1Database;
 }
 
 // Database type definitions
@@ -11,35 +11,35 @@ interface User {
   token: string;
   config: {
     // Environment
-    ipv6: boolean | undefined,
+    ipv6: boolean | undefined;
     // Mixed
-    listen: string | undefined,
-    listen_port: number | undefined,
+    listen: string | undefined;
+    listen_port: number | undefined;
     // Tun
-    enable_tun: boolean | undefined,
-    tun_auto_route: boolean | undefined,
-    tun_auto_redirect: boolean | undefined,
-    tun_strict_route: boolean | undefined,
+    enable_tun: boolean | undefined;
+    tun_auto_route: boolean | undefined;
+    tun_auto_redirect: boolean | undefined;
+    tun_strict_route: boolean | undefined;
     tun_exclude_tailscale_network: boolean | undefined;
     // Fake IP
-    enable_fakeip: boolean | undefined,
-    fakeip_inet4_range: string | undefined,
-    fakeip_inet6_range: string | undefined,
+    enable_fakeip: boolean | undefined;
+    fakeip_inet4_range: string | undefined;
+    fakeip_inet6_range: string | undefined;
     // TProxy
-    enable_tproxy: boolean | undefined,
-    tproxy_listen: string | undefined,
-    tproxy_listen_port: number | undefined,
+    enable_tproxy: boolean | undefined;
+    tproxy_listen: string | undefined;
+    tproxy_listen_port: number | undefined;
     // Tailscale
     enable_tailscale: boolean | undefined;
     tailscale_control_url: string | undefined;
     tailscale_auth_key: string | undefined;
     tailscale_network: string[] | undefined;
     // Clash API
-    enable_clash_api: boolean | undefined,
-    clash_api_listen: string | undefined,
-    clash_api_token: string | undefined,
+    enable_clash_api: boolean | undefined;
+    clash_api_listen: string | undefined;
+    clash_api_token: string | undefined;
     // App
-    log_level: string | undefined,
+    log_level: string | undefined;
   };
 }
 
@@ -60,11 +60,11 @@ interface Proxy {
   type: string;
   variable: any;
   config: {
-    selector: string[] | undefined,
+    selector: string[] | undefined;
   };
   label: string;
 }
-  
+
 interface Dns {
   name: string;
   type: string;
