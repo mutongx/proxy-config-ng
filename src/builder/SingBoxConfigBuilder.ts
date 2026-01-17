@@ -140,7 +140,7 @@ export class SingBoxConfigBuilder {
       const address = ["172.27.0.1/30", "fd77:baba:9999::1/126"];
       const exclude_address = [];
       if (!this.user.config.enable_tailscale) {
-        if (orDefault(this.user.config.tun_exclude_tailscale_network, true)) {
+        if (this.user.config.tun_exclude_tailscale_network !== false) {
           if (this.user.config.tailscale_network) {
             exclude_address.push(...this.user.config.tailscale_network);
           } else {
@@ -270,6 +270,16 @@ export class SingBoxConfigBuilder {
         server: "local",
       },
     };
+    if (this.user.config.enable_tun) {
+      if (this.user.config.tun_reject_quic !== false) {
+        this.buildResult.route.rules.push({
+          inbound: "tun",
+          network: "udp",
+          port: 443,
+          action: "reject",
+        });
+      }
+    }
     this.buildResult.route.rules.push({
       action: "sniff",
     });

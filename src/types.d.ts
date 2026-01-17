@@ -21,6 +21,7 @@ interface User {
     tun_auto_redirect: boolean | undefined;
     tun_strict_route: boolean | undefined;
     tun_exclude_tailscale_network: boolean | undefined;
+    tun_reject_quic: boolean | undefined;
     // Fake IP
     enable_fakeip: boolean | undefined;
     fakeip_inet4_range: string | undefined;
