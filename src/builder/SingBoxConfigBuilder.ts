@@ -154,8 +154,8 @@ export class SingBoxConfigBuilder {
         tag: "tun",
         address: address,
         auto_route: orDefault(this.user.config.tun_auto_route, true),
-        strict_route: orDefault(this.user.config.tun_strict_route, true),
-        auto_redirect: orDefault(this.user.config.tun_auto_redirect, true),
+        strict_route: this.user.config.tun_strict_route,
+        auto_redirect: this.user.config.tun_auto_redirect,
         route_exclude_address: exclude_address,
       });
     }
