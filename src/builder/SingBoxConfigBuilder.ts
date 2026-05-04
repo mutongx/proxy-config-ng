@@ -235,6 +235,10 @@ export class SingBoxConfigBuilder {
       tag: "local",
       type: "local",
     });
+    this.buildResult.dns.servers.push({
+      tag: "dhcp",
+      type: "dhcp",
+    });
     for (const dns of dnsList) {
       this.buildResult.dns.servers.push({
         tag: dns.name,
