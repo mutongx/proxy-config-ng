@@ -292,11 +292,6 @@ export class SingBoxConfigBuilder {
       action: "hijack-dns",
     });
     this.buildResult.route.rules.push({
-      protocol: "stun",
-      action: "route",
-      outbound: "direct",
-    });
-    this.buildResult.route.rules.push({
       protocol: "bittorrent",
       action: "route",
       outbound: "direct",
