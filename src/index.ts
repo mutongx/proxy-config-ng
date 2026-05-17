@@ -29,6 +29,7 @@ async function handlerGetConfig(
       }),
     ),
   };
+  user.config.user_agent = request.headers.get("User-Agent");
   const builder = new SingBoxConfigBuilder(user, db);
   await builder.buildInbounds();
   await builder.buildOutbounds(await db.getAsset(user, "proxy"));
@@ -39,7 +40,8 @@ async function handlerGetConfig(
   return new Response(
     "" +
       `// url = "${request.url}"\n` +
-      `// user = "${user.name}"\n` +
+      `// user.name = "${user.name}"\n` +
+      `// user.config = ${JSON.stringify(user.config)}\n` +
       JSON.stringify(builder.get(), null, 2) +
       "\n",
     {

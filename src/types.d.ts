@@ -10,6 +10,8 @@ interface User {
   name: string;
   token: string;
   config: {
+    // Request
+    user_agent: str;
     // Environment
     ipv6: boolean | undefined;
     // Mixed
