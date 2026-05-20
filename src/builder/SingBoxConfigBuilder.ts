@@ -235,12 +235,6 @@ export class SingBoxConfigBuilder {
       tag: "local",
       type: "local",
     });
-    if (this.user.config.user_agent.match(/SF[IMT]\/.*/)) {
-      this.buildResult.dns.servers.push({
-        tag: "dhcp",
-        type: "dhcp",
-      });
-    }
     for (const dns of dnsList) {
       this.buildResult.dns.servers.push({
         tag: dns.name,
