@@ -92,6 +92,7 @@ interface RuleAction {
   user: string;
   class: string;
   inbound: string | null;
+  protocol: string | null;
   rule_set: string;
   rule_action: string;
   config: any;

@@ -29,6 +29,5 @@ CREATE INDEX index__access__user__class ON access (user, class);
 CREATE TABLE rule_set (name TEXT, seq INTEGER, config TEXT);
 CREATE UNIQUE INDEX unique_index__rule_set__name__seq ON rule_set (name, seq);
 
-CREATE TABLE rule_action (user TEXT, class TEXT, inbound TEXT, rule_set TEXT, rule_action TEXT, config TEXT, priority INTEGER);
-CREATE UNIQUE INDEX unique_index__rule_action__user__class__inbound__rule_set__rule_action ON rule_action (user, class, inbound, rule_set, rule_action);
+CREATE TABLE rule_action (user TEXT, class TEXT, inbound TEXT, protocol TEXT, rule_set TEXT, rule_action TEXT, config TEXT, priority INTEGER);
 CREATE INDEX index__rule_action__user__class__priority ON rule_action (user, class, priority);

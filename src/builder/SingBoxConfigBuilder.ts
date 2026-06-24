@@ -315,7 +315,8 @@ export class SingBoxConfigBuilder {
       // Generate rule
       const tag = await this.getRuleSet(action.rule_set);
       this.buildResult.route.rules.push({
-        inbound: action.inbound || undefined,
+        inbound: action.inbound?.split(",") || undefined,
+        protocol: action.protocol?.split(",") || undefined,
         rule_set: tag,
         action: action.rule_action,
         ...action.config,
