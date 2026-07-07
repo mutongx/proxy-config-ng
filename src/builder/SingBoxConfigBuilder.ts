@@ -270,6 +270,13 @@ export class SingBoxConfigBuilder {
         server: "local",
       },
     };
+    if (this.user.config.ipv6 !== true) {
+      this.buildResult.route.rules.push({
+        inbound: "tun",
+        ip_cidr: "2000::/3",
+        action: "reject",
+      });
+    }
     if (this.user.config.enable_tun) {
       if (this.user.config.tun_reject_quic !== false) {
         this.buildResult.route.rules.push({
