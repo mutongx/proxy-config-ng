@@ -270,14 +270,14 @@ export class SingBoxConfigBuilder {
         server: "local",
       },
     };
-    if (this.user.config.ipv6 !== true) {
-      this.buildResult.route.rules.push({
-        inbound: "tun",
-        ip_cidr: "2000::/3",
-        action: "reject",
-      });
-    }
     if (this.user.config.enable_tun) {
+      if (this.user.config.ipv6 !== true) {
+        this.buildResult.route.rules.push({
+          inbound: "tun",
+          ip_cidr: "2000::/3",
+          action: "reject",
+        });
+      }
       if (this.user.config.tun_reject_quic !== false) {
         this.buildResult.route.rules.push({
           inbound: "tun",
@@ -295,15 +295,27 @@ export class SingBoxConfigBuilder {
       action: "hijack-dns",
     });
     this.buildResult.route.rules.push({
-      protocol: "bittorrent",
-      action: "route",
-      outbound: "direct",
-    });
-    this.buildResult.route.rules.push({
       ip_is_private: true,
       action: "route",
       outbound: "direct",
     });
+    if (this.user.config.enable_tun) {
+      if (this.user.config.tun_reject_stun !== false) {
+        this.buildResult.route.rules.push({
+          inbound: "tun",
+          protocol: "stun",
+          action: "reject",
+        });
+      }
+      if (this.user.config.tun_bypass_bittorrent !== false) {
+        this.buildResult.route.rules.push({
+          inbound: "tun",
+          protocol: "bittorrent",
+          action: "route",
+          outbound: "direct",
+        });
+      }
+    }
     for (const action of actions) {
       // Special handling for final route
       if (action.rule_set === null) {
