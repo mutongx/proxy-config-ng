@@ -86,7 +86,6 @@ export class SingBoxConfigBuilder {
             tag: ruleSetTag,
             format: "binary",
             url: `https://github.com/SagerNet/sing-geosite/raw/refs/heads/rule-set/geosite-${file}.srs`,
-            download_detour: "proxy",
           });
           break;
         case "geoip":
@@ -96,7 +95,6 @@ export class SingBoxConfigBuilder {
             tag: ruleSetTag,
             format: "binary",
             url: `https://github.com/SagerNet/sing-geoip/raw/refs/heads/rule-set/geoip-${file}.srs`,
-            download_detour: "proxy",
           });
           break;
         default:
@@ -224,6 +222,12 @@ export class SingBoxConfigBuilder {
         },
       ];
     }
+    this.buildResult.http_clients = [
+      {
+        tag: "default",
+        detour: "proxy",
+      },
+    ];
   }
 
   async buildDns(dnsList: Dns[]) {
