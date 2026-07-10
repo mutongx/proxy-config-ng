@@ -389,7 +389,7 @@ export class SingBoxConfigBuilder {
       cache_id: "",
       store_fakeip: true,
     };
-    if (this.user.config.enable_clash_api !== false) {
+    if (this.user.config.enable_clash_api === true) {
       this.buildResult.experimental.clash_api = {
         external_controller: orDefault(
           this.user.config.clash_api_listen,
