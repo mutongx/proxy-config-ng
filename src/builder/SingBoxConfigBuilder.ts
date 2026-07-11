@@ -247,23 +247,6 @@ export class SingBoxConfigBuilder {
         "endpoint": "tailscale",
       })
     }
-    if (this.user.config.enable_fakeip) {
-      this.buildResult.dns.fakeip = {
-        enabled: true,
-        inet4_range: orDefault(
-          this.user.config.fakeip_inet4_range,
-          "198.18.0.0/15",
-        ),
-        inet6_range: orDefault(
-          this.user.config.fakeip_inet6_range,
-          "fc00::/18",
-        ),
-      };
-      this.buildResult.dns.servers.push({
-        tag: "fakeip",
-        type: "fakeip",
-      });
-    }
     for (const dns of dnsList) {
       this.buildResult.dns.servers.push({
         tag: dns.name,
