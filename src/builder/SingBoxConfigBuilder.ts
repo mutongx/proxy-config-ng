@@ -240,13 +240,12 @@ export class SingBoxConfigBuilder {
       tag: "local",
       type: "local",
     });
-    for (const dns of dnsList) {
+    if (this.user.config.enable_tailscale) {
       this.buildResult.dns.servers.push({
-        tag: dns.name,
-        type: dns.type,
-        server: dns.addr,
-        detour: dns.detour != "direct" ? dns.detour : undefined,
-      });
+        "tag": "tailscale",
+        "type": "tailscale",
+        "endpoint": "tailscale",
+      })
     }
     if (this.user.config.enable_fakeip) {
       this.buildResult.dns.fakeip = {
@@ -263,6 +262,14 @@ export class SingBoxConfigBuilder {
       this.buildResult.dns.servers.push({
         tag: "fakeip",
         type: "fakeip",
+      });
+    }
+    for (const dns of dnsList) {
+      this.buildResult.dns.servers.push({
+        tag: dns.name,
+        type: dns.type,
+        server: dns.addr,
+        detour: dns.detour != "direct" ? dns.detour : undefined,
       });
     }
   }
@@ -296,6 +303,13 @@ export class SingBoxConfigBuilder {
     this.buildResult.route.rules.push({
       action: "sniff",
     });
+    if (this.user.config.enable_tailscale) {
+      this.buildResult.route.rules.push({
+        preferred_by: "tailscale",
+        action: "route",
+        outbound: "tailscale",
+      })
+    }
     for (const action of actions) {
       if (action.priority < 0) {
         continue;
@@ -322,6 +336,13 @@ export class SingBoxConfigBuilder {
 
   async buildDnsRules(actions: RuleAction[]) {
     this.buildResult.dns.rules = [];
+    if (this.user.config.enable_tailscale) {
+      this.buildResult.dns.rules.push({
+        preferred_by: "tailscale",
+        action: "route",
+        server:"tailscale",
+      })
+    }
     for (const action of actions) {
       if (action.inbound !== null || action.protocol != null || action.rule_set !== null) {
         this.buildResult.dns.rules.push({
