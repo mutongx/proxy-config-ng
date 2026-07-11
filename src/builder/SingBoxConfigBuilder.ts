@@ -216,6 +216,7 @@ export class SingBoxConfigBuilder {
     if (this.user.config.enable_tailscale) {
       this.buildResult.endpoints = [
         {
+          tag: "tailscale",
           type: "tailscale",
           auth_key: this.user.config.tailscale_auth_key,
           control_url: this.user.config.tailscale_control_url,
