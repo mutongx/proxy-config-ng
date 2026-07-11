@@ -109,8 +109,8 @@ export class SingBoxConfigBuilder {
       const parsedRules: { [key: string]: (string | number)[] }[] = [];
       for (const ruleSet of ruleSets) {
         for (const key of Object.keys(ruleSet.config)) {
-          ruleSet.config[key] = ensureArray(ruleSet.config[key]).map((v) =>
-            /^\d+$/.test(v) ? parseInt(v) : v,
+          ruleSet.config[key] = ensureArray(ruleSet.config[key]).map(
+            (v) => /^\d+$/.test(v) ? parseInt(v) : v
           );
         }
         parsedRules.push(ruleSet.config);
@@ -274,76 +274,48 @@ export class SingBoxConfigBuilder {
         server: "local",
       },
     };
-    if (this.user.config.enable_tun) {
-      if (this.user.config.ipv6 !== true) {
-        this.buildResult.route.rules.push({
-          inbound: "tun",
-          ip_cidr: "2000::/3",
-          action: "reject",
-        });
+    if (this.user.config.ipv6 !== true) {
+      this.buildResult.route.rules.push({
+        ip_cidr: "2000::/3",
+        action: "reject",
+      });
+    }
+    for (const action of actions) {
+      if (action.priority >= 0) {
+        break;
       }
-      if (this.user.config.tun_reject_quic !== false) {
-        this.buildResult.route.rules.push({
-          inbound: "tun",
-          network: "udp",
-          port: 443,
-          action: "reject",
-        });
-      }
+      this.buildResult.route.rules.push({
+        inbound: action.inbound?.split(",") || undefined,
+        protocol: action.protocol?.split(",") || undefined,
+        rule_set: action.rule_set !== null ? await this.getRuleSet(action.rule_set) : undefined,
+        action: action.rule_action,
+        ...action.config,
+      });
     }
     this.buildResult.route.rules.push({
       action: "sniff",
     });
-    this.buildResult.route.rules.push({
-      protocol: "dns",
-      action: "hijack-dns",
-    });
-    this.buildResult.route.rules.push({
-      ip_is_private: true,
-      action: "route",
-      outbound: "direct",
-    });
-    if (this.user.config.enable_tun) {
-      if (this.user.config.tun_reject_stun !== false) {
-        this.buildResult.route.rules.push({
-          inbound: "tun",
-          protocol: "stun",
-          action: "reject",
-        });
-      }
-      if (this.user.config.tun_bypass_bittorrent !== false) {
-        this.buildResult.route.rules.push({
-          inbound: "tun",
-          protocol: "bittorrent",
-          action: "route",
-          outbound: "direct",
-        });
-      }
-    }
     for (const action of actions) {
-      // Special handling for final route
-      if (action.rule_set === null) {
-        if (action.inbound !== null) {
-          throw new Error("final action cannot define inbound");
-        }
+      if (action.priority < 0) {
+        continue;
+      }
+      if (action.inbound !== null ||action.protocol !== null || action.rule_set !== null) {
+        this.buildResult.route.rules.push({
+          inbound: action.inbound?.split(",") || undefined,
+          protocol: action.protocol?.split(",") || undefined,
+          rule_set: action.rule_set !== null ? await this.getRuleSet(action.rule_set) : undefined,
+          action: action.rule_action,
+          ...action.config,
+        });
+      } else {
         if (action.rule_action !== "route") {
           throw new Error("final action must be route");
         }
         if (action.config.outbound === undefined) {
-          throw new Error("final action must have an outbound");
+          throw new Error("final route action must have an outbound");
         }
         this.buildResult.route.final = action.config.outbound;
-        continue;
       }
-      // Generate rule
-      const tag = await this.getRuleSet(action.rule_set);
-      this.buildResult.route.rules.push({
-        inbound: action.inbound?.split(",") || undefined,
-        protocol: action.protocol?.split(",") || undefined,
-        rule_set: tag,
-        action: action.rule_action,
-        ...action.config,
-      });
     }
   }
 
