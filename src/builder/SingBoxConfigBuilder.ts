@@ -264,6 +264,13 @@ export class SingBoxConfigBuilder {
         server: "local",
       },
     };
+    if (this.user.config.enable_tailscale) {
+      this.buildResult.route.rules.push({
+        preferred_by: "tailscale",
+        action: "route",
+        outbound: "tailscale",
+      })
+    }
     if (this.user.config.ipv6 !== true) {
       this.buildResult.route.rules.push({
         ip_cidr: "2000::/3",
@@ -285,13 +292,6 @@ export class SingBoxConfigBuilder {
     this.buildResult.route.rules.push({
       action: "sniff",
     });
-    if (this.user.config.enable_tailscale) {
-      this.buildResult.route.rules.push({
-        preferred_by: "tailscale",
-        action: "route",
-        outbound: "tailscale",
-      })
-    }
     for (const action of actions) {
       if (action.priority < 0) {
         continue;
