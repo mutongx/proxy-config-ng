@@ -6,7 +6,7 @@ export function orDefault<T>(value: T | undefined, defaultValue: T) {
 }
 
 export function ensureArray(value: string | string[] | null | undefined) {
-  if (typeof value === "string") {
+  if (typeof value === "string" || typeof value === "number") {
     value = [value];
   }
   if (!Array.isArray(value)) {

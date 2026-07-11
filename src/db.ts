@@ -59,7 +59,7 @@ export default class {
         value["variable"] = parseConfigString(value["variable"] as string | null);
         value["config"] = parseConfigString(value["config"] as string | null);
         return value as unknown as Proxy;
-      });  
+      });
     }
     if (assetClass == "dns") {
       return (await stmt.all()).results.map((value) => value as unknown as Dns);
