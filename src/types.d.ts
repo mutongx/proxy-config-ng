@@ -23,10 +23,6 @@ interface User {
     tun_auto_redirect: boolean | undefined;
     tun_strict_route: boolean | undefined;
     tun_exclude_tailscale_network: boolean | undefined;
-    // Fake IP
-    enable_fakeip: boolean | undefined;
-    fakeip_inet4_range: string | undefined;
-    fakeip_inet6_range: string | undefined;
     // TProxy
     enable_tproxy: boolean | undefined;
     tproxy_listen: string | undefined;
@@ -61,7 +57,7 @@ interface Proxy {
   port: number;
   type: string;
   variable: any;
-  config: {
+  extra: {
     selector: string[] | undefined;
   };
   label: string;
@@ -70,8 +66,7 @@ interface Proxy {
 interface Dns {
   name: string;
   type: string;
-  addr: string;
-  detour: string;
+  config: any;
   label: string;
 }
 

@@ -57,12 +57,15 @@ export default class {
     if (assetClass == "proxy") {
       return (await stmt.all()).results.map((value) => {
         value["variable"] = parseConfigString(value["variable"] as string | null);
-        value["config"] = parseConfigString(value["config"] as string | null);
+        value["extra"] = parseConfigString(value["extra"] as string | null);
         return value as unknown as Proxy;
       });
     }
     if (assetClass == "dns") {
-      return (await stmt.all()).results.map((value) => value as unknown as Dns);
+      return (await stmt.all()).results.map((value) => {
+        value["config"] = parseConfigString(value["config"] as string | null);
+        return value as unknown as Dns;
+      });
     }
   }
 

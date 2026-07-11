@@ -12,11 +12,11 @@ CREATE UNIQUE INDEX unique_index__variable__name ON variable (name);
 
 /* proxy and access list */
 
-CREATE TABLE proxy (host TEXT, port INTEGER, type TEXT, variable TEXT, config TEXT, label TEXT);
+CREATE TABLE proxy (host TEXT, port INTEGER, type TEXT, variable TEXT, extra TEXT, label TEXT);
 CREATE UNIQUE INDEX unique_index__proxy__host__port__type ON proxy (host, port, type);
 CREATE INDEX index__proxy__label ON proxy (label);
 
-CREATE TABLE dns (name TEXT, type TEXT, addr TEXT, detour TEXT, label TEXT);
+CREATE TABLE dns (name TEXT, type TEXT, config TEXT, label TEXT);
 CREATE UNIQUE INDEX unique_index__dns__name ON dns (name);
 CREATE INDEX index__dns__label ON dns (label);
 

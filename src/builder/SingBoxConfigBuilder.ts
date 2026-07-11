@@ -186,7 +186,7 @@ export class SingBoxConfigBuilder {
       counter.set(slug, count + 1);
       // Create tag and group
       const tag = `${slug}-${count}`;
-      const groups = ["proxy", ...ensureArray(proxy.config.selector)];
+      const groups = ["proxy", ...ensureArray(proxy.extra.selector)];
       for (const group of groups) {
         if (!grouper.has(group)) {
           grouper.set(group, []);
@@ -251,8 +251,7 @@ export class SingBoxConfigBuilder {
       this.buildResult.dns.servers.push({
         tag: dns.name,
         type: dns.type,
-        server: dns.addr,
-        detour: dns.detour != "direct" ? dns.detour : undefined,
+        ...dns.config,
       });
     }
   }
