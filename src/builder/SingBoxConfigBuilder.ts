@@ -323,34 +323,22 @@ export class SingBoxConfigBuilder {
   async buildDnsRules(actions: RuleAction[]) {
     this.buildResult.dns.rules = [];
     for (const action of actions) {
-      // Special handling for final route
-      if (action.rule_set === null) {
-        if (action.inbound !== null) {
-          throw new Error("final dns actoun cannot define inbound");
-        }
+      if (action.inbound !== null || action.protocol != null || action.rule_set !== null) {
+        this.buildResult.dns.rules.push({
+          inbound: action.inbound || undefined,
+          rule_set: action.rule_set !== null ? await this.getRuleSet(action.rule_set) : undefined,
+          action: action.rule_action,
+          ...action.config,
+        });
+      } else {
         if (action.rule_action !== "route") {
           throw new Error("final dns action must be route");
         }
         if (action.config.server === undefined) {
-          throw new Error("final dns action must have an outbound");
+          throw new Error("final dns route action must have an outbound");
         }
         this.buildResult.dns.final = action.config.server;
-        continue;
       }
-      // Generate rule
-      const tag = await this.getRuleSet(action.rule_set);
-      this.buildResult.dns.rules.push({
-        inbound: action.inbound || undefined,
-        rule_set: tag,
-        action: action.rule_action,
-        ...action.config,
-      });
-    }
-    if (this.user.config.enable_fakeip) {
-      this.buildResult.dns.rules.push({
-        query_type: ["A", "AAAA"],
-        server: "fakeip",
-      });
     }
   }
 
