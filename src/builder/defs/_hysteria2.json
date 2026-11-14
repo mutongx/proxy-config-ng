@@ -5,7 +5,7 @@
   "password": { "$ref": "vars:/password" },
   "tls": {
     "enabled": true,
-    "server_name": "127.0.0.1",
+    "server_name": { "$ref": "proxy:host" },
     "alpn": [ "h3" ],
     "certificate": { "$ref": "vars:/server_certificate" }
   }

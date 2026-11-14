@@ -6,7 +6,7 @@
   "flow": "xtls-rprx-vision",
   "tls": {
     "enabled": true,
-    "server_name": "127.0.0.1",
+    "server_name": { "$ref": "proxy:host" },
     "certificate": { "$ref": "vars:/server_certificate" },
     "utls": {
       "enabled": true,

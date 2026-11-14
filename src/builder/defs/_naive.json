@@ -1,0 +1,12 @@
+{
+  "type": "naive",
+  "server": { "$ref": "proxy:host" },
+  "server_port": { "$ref": "proxy:port" },
+  "username": { "$ref": "vars:/username" },
+  "password": { "$ref": "vars:/password" },
+  "tls": {
+    "enabled": true,
+    "server_name": { "$ref": "proxy:host" },
+    "certificate": { "$ref": "vars:/server_certificate" }
+  }
+}
