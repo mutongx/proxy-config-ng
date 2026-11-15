@@ -4,7 +4,6 @@
   "server_port": { "$ref": "proxy:port" },
   "username": { "$ref": "vars:/username" },
   "password": { "$ref": "vars:/password" },
-  "quic": true,
   "udp_over_tcp": true,
   "tls": {
     "enabled": true,
