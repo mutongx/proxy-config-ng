@@ -168,7 +168,8 @@ export class SingBoxConfigBuilder {
   }
 
   async buildOutbounds(proxyList: Proxy[]) {
-    const grouper = new Map<string, string[]>();
+    const selectorGroups = new Map<string, string[]>();
+    const urltestGroups = new Map<string, string[]>();
     const counter = new Map<string, number>();
     this.buildResult.outbounds = [];
     this.buildResult.outbounds.push({ type: "direct", tag: "direct" });
@@ -177,38 +178,57 @@ export class SingBoxConfigBuilder {
       if (!host) {
         throw "host undefined";
       }
-      // Generate a unique name
+      // Generate a unique tag
       const slug = `${host.name}-${proxy.type}`;
       if (!counter.has(slug)) {
         counter.set(slug, 0);
       }
       const count = counter.get(slug)!;
       counter.set(slug, count + 1);
-      // Create tag and group
       const tag = `${slug}-${count}`;
-      const groups = ["proxy", ...ensureArray(proxy.extra.selector)];
-      for (const group of groups) {
-        if (!grouper.has(group)) {
-          grouper.set(group, []);
+      // Assign to selector
+      const selectors = ["proxy", ...ensureArray(proxy.extra.selector)];
+      for (const selector of selectors) {
+        if (!selectorGroups.has(selector)) {
+          selectorGroups.set(selector, []);
         }
-        grouper.get(group)!.push(tag);
+        selectorGroups.get(selector)!.push(tag);
       }
       // Create the proxy config
-      const proxyDef = structuredClone(ProxyDefs[proxy.type]);
-      await this.fillConfig(
-        proxyDef,
-        this.user.config.ipv6 ? host.addr6 || host.addr : host.addr,
-        proxy.port,
-        proxy.variable,
-      );
-      this.buildResult.outbounds.push({
-        tag: tag,
-        ...proxyDef,
-      });
+      let proxyDef = structuredClone(ProxyDefs[proxy.type]);
+      if (proxyDef._urltest !== undefined) {
+        const urltestConfigs = proxyDef._urltest as Array<ConfigObject>;
+        const urltestTags: string[] = [];
+        delete proxyDef._urltest;
+        for (const [variantIndex, variantConfig] of urltestConfigs.entries()) {
+          const variantTag = `${tag}-${variantIndex}`;
+          const variantDef = { ...structuredClone(proxyDef), ...variantConfig };
+          await this.fillConfig(
+            variantDef,
+            this.user.config.ipv6 ? host.addr6 || host.addr : host.addr,
+            proxy.port, proxy.variable);
+          this.buildResult.outbounds.push({ tag: variantTag, ...variantDef });
+          urltestTags.push(variantTag);
+        }
+        urltestGroups.set(tag, urltestTags);
+      } else {
+        await this.fillConfig(
+          proxyDef,
+          this.user.config.ipv6 ? host.addr6 || host.addr : host.addr,
+          proxy.port, proxy.variable);
+        this.buildResult.outbounds.push({ tag: tag, ...proxyDef });
+      }
     }
-    for (const [groupName, groupValues] of grouper) {
+    for (const [groupName, groupValues] of selectorGroups) {
       this.buildResult.outbounds.push({
         type: "selector",
+        tag: groupName,
+        outbounds: groupValues,
+      });
+    }
+    for (const [groupName, groupValues] of urltestGroups) {
+      this.buildResult.outbounds.push({
+        type: "urltest",
         tag: groupName,
         outbounds: groupValues,
       });

@@ -9,5 +9,9 @@
     "enabled": true,
     "server_name": { "$ref": "proxy:host" },
     "certificate": { "$ref": "vars:/server_certificate" }
-  }
+  },
+  "_urltest": [
+    { "quic": true },
+    { "quic": false }
+  ]
 }
